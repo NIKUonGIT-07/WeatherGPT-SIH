@@ -1,8 +1,9 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
 
-from app.services.nlu import extract_city
+from app.services.nlu import extract_city, detect_intent
 from app.services.weather_service import get_current_weather
+from app.services.forecast_service import get_forecast
 from app.services.response_builder import build_weather_response
 
 router = APIRouter(
@@ -20,7 +21,17 @@ def chat(request: ChatRequest):
 
     city = extract_city(request.message)
 
-    if city:
+    if not city:
+        return {
+            "reply": "Sorry, I couldn't identify the city in your message."
+        }
+
+    intent = detect_intent(request.message)
+
+    # -------------------------
+    # Current Weather
+    # -------------------------
+    if intent == "current_weather":
 
         weather = get_current_weather(city)
 
@@ -33,6 +44,21 @@ def chat(request: ChatRequest):
             "reply": reply
         }
 
+    # -------------------------
+    # Forecast
+    # -------------------------
+    elif intent == "forecast":
+
+        forecast = get_forecast(city)
+
+        if "error" in forecast:
+            return forecast
+
+        return forecast
+
+    # -------------------------
+    # Unknown Intent
+    # -------------------------
     return {
-        "reply": "Sorry, I couldn't identify the city in your message."
+        "reply": "Sorry, I couldn't understand your request."
     }
