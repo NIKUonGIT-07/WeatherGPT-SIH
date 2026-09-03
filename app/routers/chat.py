@@ -36,12 +36,12 @@ def chat(request: ChatRequest):
         weather = get_current_weather(city)
 
         if "error" in weather:
-            return weather
-
-        reply = build_weather_response(weather)
+            return {
+                "reply": weather["error"]
+            }
 
         return {
-            "reply": reply
+            "reply": build_weather_response(weather)
         }
 
     # -------------------------
@@ -52,12 +52,14 @@ def chat(request: ChatRequest):
         forecast = get_forecast(city)
 
         if "error" in forecast:
-            return forecast
+            return {
+                "reply": forecast["error"]
+            }
 
         return forecast
 
     # -------------------------
-    # Unknown Intent
+    # Unknown Request
     # -------------------------
     return {
         "reply": "Sorry, I couldn't understand your request."

@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.routers import auth, chat, alerts, weather, forecast
+from app.routers import auth, chat, weather, forecast
 
 app = FastAPI(
     title="Raikyn AI API",
@@ -18,7 +18,7 @@ app.add_middleware(
 
 app.include_router(auth.router)
 app.include_router(chat.router)
-app.include_router(alerts.router)
+# app.include_router(alerts.router)
 app.include_router(weather.router)
 app.include_router(forecast.router)
 

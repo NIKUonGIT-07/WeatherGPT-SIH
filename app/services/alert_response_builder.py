@@ -7,9 +7,7 @@ def generate_weather_alerts(weather: dict):
     wind_speed = weather.get("wind_speed", 0)
     condition = weather.get("condition", "")
 
-    # -----------------------------
-    # Thunderstorm Alert
-    # -----------------------------
+    # Thunderstorm
     if "Thunderstorm" in condition:
         alerts.append({
             "level": "HIGH",
@@ -22,51 +20,43 @@ def generate_weather_alerts(weather: dict):
             ]
         })
 
-    # -----------------------------
-    # Heavy Rain Alert
-    # -----------------------------
+    # Heavy Rain
     if "Rain" in condition:
         alerts.append({
             "level": "MEDIUM",
             "type": "Heavy Rain",
-            "message": "Heavy rainfall may affect travel conditions.",
+            "message": "Rainfall may affect travel conditions.",
             "advice": [
-                "Carry an umbrella or raincoat.",
+                "Carry an umbrella.",
                 "Drive carefully on wet roads."
             ]
         })
 
-    # -----------------------------
-    # Heatwave Alert
-    # -----------------------------
+    # Heatwave
     if temperature >= 40:
         alerts.append({
             "level": "HIGH",
             "type": "Heatwave",
-            "message": "Very high temperatures detected.",
+            "message": "Extremely high temperature detected.",
             "advice": [
                 "Stay hydrated.",
-                "Avoid direct sunlight during peak hours."
+                "Avoid going outside during afternoon hours."
             ]
         })
 
-    # -----------------------------
-    # Cold Wave Alert
-    # -----------------------------
+    # Cold Wave
     if temperature <= 5:
         alerts.append({
             "level": "MEDIUM",
             "type": "Cold Wave",
-            "message": "Very low temperatures detected.",
+            "message": "Very low temperature detected.",
             "advice": [
                 "Wear warm clothing.",
                 "Limit outdoor exposure."
             ]
         })
 
-    # -----------------------------
-    # Strong Wind Alert
-    # -----------------------------
+    # Strong Wind
     if wind_speed >= 40:
         alerts.append({
             "level": "MEDIUM",
@@ -78,9 +68,7 @@ def generate_weather_alerts(weather: dict):
             ]
         })
 
-    # -----------------------------
-    # High Humidity Alert
-    # -----------------------------
+    # High Humidity
     if humidity >= 90:
         alerts.append({
             "level": "LOW",
