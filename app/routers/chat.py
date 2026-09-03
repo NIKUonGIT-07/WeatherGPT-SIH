@@ -23,8 +23,16 @@ def chat(request: ChatRequest):
     if city:
 
         weather = get_current_weather(city)
+
+        if "error" in weather:
+            return weather
+
         reply = build_weather_response(weather)
 
         return {
             "reply": reply
-   }
+        }
+
+    return {
+        "reply": "Sorry, I couldn't identify the city in your message."
+    }
