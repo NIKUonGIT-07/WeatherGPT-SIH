@@ -25,8 +25,56 @@ def detect_intent(message: str):
         "upcoming"
     ]
 
-    for keyword in forecast_keywords:
-        if keyword in message:
+    umbrella_keywords = [
+        "umbrella",
+        "raincoat",
+        "rain"
+    ]
+
+    travel_keywords = [
+        "travel",
+        "drive",
+        "trip",
+        "journey",
+        "flight"
+    ]
+
+    outdoor_keywords = [
+        "walk",
+        "jog",
+        "cricket",
+        "football",
+        "play",
+        "outside",
+        "outdoor"
+    ]
+
+    health_keywords = [
+        "humidity",
+        "health",
+        "heat",
+        "hot",
+        "temperature"
+    ]
+
+    for word in forecast_keywords:
+        if word in message:
             return "forecast"
+
+    for word in umbrella_keywords:
+        if word in message:
+            return "umbrella"
+
+    for word in travel_keywords:
+        if word in message:
+            return "travel"
+
+    for word in outdoor_keywords:
+        if word in message:
+            return "outdoor"
+
+    for word in health_keywords:
+        if word in message:
+            return "health"
 
     return "current_weather"
