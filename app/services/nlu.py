@@ -1,18 +1,64 @@
-import re
-
-
 def extract_city(message: str):
+    message = message.strip()
 
-    match = re.search(r"in\s+([A-Za-z ]+)", message, re.IGNORECASE)
+    stop_words = [
+        "weather",
+        "forecast",
+        "today",
+        "tomorrow",
+        "will",
+        "it",
+        "rain",
+        "raining",
+        "rainfall",
+        "in",
+        "at",
+        "for",
+        "of",
+        "the",
+        "is",
+        "there",
+        "what",
+        "how",
+        "tell",
+        "me",
+        "about",
+        "please",
+        "should",
+        "i",
+        "carry",
+        "umbrella",
+        "an",
+        "a",
+        "current"
+    ]
 
-    if match:
-        return match.group(1).strip()
+    words = message.replace("?", "").replace(".", "").replace(",", "").split()
+
+    # Best case: city after "in", "at", or "for"
+    lower_words = [word.lower() for word in words]
+
+    for keyword in ["in", "at", "for"]:
+        if keyword in lower_words:
+            index = lower_words.index(keyword)
+            city_words = words[index + 1:]
+
+            if city_words:
+                return " ".join(city_words).strip()
+
+    # Fallback: remove common question words
+    city_words = [
+        word for word in words
+        if word.lower() not in stop_words
+    ]
+
+    if city_words:
+        return " ".join(city_words).strip()
 
     return None
 
 
 def detect_intent(message: str):
-
     message = message.lower()
 
     forecast_keywords = [
@@ -25,56 +71,19 @@ def detect_intent(message: str):
         "upcoming"
     ]
 
-    umbrella_keywords = [
-        "umbrella",
-        "raincoat",
-        "rain"
+    rain_keywords = [
+        "rain",
+        "raining",
+        "rainfall",
+        "shower",
+        "drizzle",
+        "umbrella"
     ]
 
-    travel_keywords = [
-        "travel",
-        "drive",
-        "trip",
-        "journey",
-        "flight"
-    ]
+    if any(keyword in message for keyword in forecast_keywords):
+        return "forecast"
 
-    outdoor_keywords = [
-        "walk",
-        "jog",
-        "cricket",
-        "football",
-        "play",
-        "outside",
-        "outdoor"
-    ]
-
-    health_keywords = [
-        "humidity",
-        "health",
-        "heat",
-        "hot",
-        "temperature"
-    ]
-
-    for word in forecast_keywords:
-        if word in message:
-            return "forecast"
-
-    for word in umbrella_keywords:
-        if word in message:
-            return "umbrella"
-
-    for word in travel_keywords:
-        if word in message:
-            return "travel"
-
-    for word in outdoor_keywords:
-        if word in message:
-            return "outdoor"
-
-    for word in health_keywords:
-        if word in message:
-            return "health"
+    if any(keyword in message for keyword in rain_keywords):
+        return "current_weather"
 
     return "current_weather"

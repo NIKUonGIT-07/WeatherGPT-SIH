@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="WeatherGPT conversational weather assistant powered by a FastAPI backend.">
+    <meta name="theme-color" content="#050B1A">
+
+    <title>WeatherGPT</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="app.js" defer></script>
+</head>
+
+<body>
+    <div class="app">
+        <aside class="sidebar" aria-label="WeatherGPT sidebar">
+            <div class="brand" aria-label="WeatherGPT">
+                <div class="brand-dot" aria-hidden="true"></div>
+                <span>WeatherGPT</span>
+            </div>
+
+            <button class="new-forecast" id="new-forecast" type="button">
+                <span class="plus" aria-hidden="true">+</span>
+                <span>New Forecast</span>
+            </button>
+
+            <section class="recent-section" aria-labelledby="recent-searches-title">
+                <div class="section-title" id="recent-searches-title">RECENT SEARCHES</div>
+
+                <div class="recent-list">
+                    <button class="recent-location" type="button" data-query="Weather in Guwahati">
+                        <span class="location-icon" aria-hidden="true">⌖</span>
+                        <span>Guwahati, India</span>
+                    </button>
+
+                    <button class="recent-location" type="button" data-query="Weather in Mumbai">
+                        <span class="location-icon" aria-hidden="true">⌖</span>
+                        <span>Mumbai, India</span>
+                    </button>
+
+                    <button class="recent-location" type="button" data-query="Weather in Delhi">
+                        <span class="location-icon" aria-hidden="true">⌖</span>
+                        <span>Delhi, India</span>
+                    </button>
+                </div>
+            </section>
+
+            <section class="insights-section" aria-labelledby="daily-insights-title">
+                <div class="section-title" id="daily-insights-title">DAILY INSIGHTS</div>
+
+                <div class="insights-grid">
+                    <article class="insight-card">
+                        <div class="insight-header">
+                            <span class="insight-icon" aria-hidden="true">AQI</span>
+                            <span class="insight-label">Air Quality</span>
+                        </div>
+                        <div class="insight-value">
+                            42
+                            <span class="insight-status status-good">Good</span>
+                        </div>
+                        <div class="insight-bar-bg" aria-hidden="true">
+                            <div class="insight-bar-fill aqi-fill"></div>
+                        </div>
+                    </article>
+
+                    <article class="insight-card">
+                        <div class="insight-header">
+                            <span class="insight-icon" aria-hidden="true">UV</span>
+                            <span class="insight-label">UV Index</span>
+                        </div>
+                        <div class="insight-value">
+                            3
+                            <span class="insight-status status-mod">Low</span>
+                        </div>
+                        <div class="insight-bar-bg" aria-hidden="true">
+                            <div class="insight-bar-fill uv-fill"></div>
+                        </div>
+                    </article>
+
+                    <article class="insight-card full-width">
+                        <div class="insight-header">
+                            <span class="insight-icon" aria-hidden="true">SUN</span>
+                            <span class="insight-label">Sunrise & Sunset</span>
+                        </div>
+                        <div class="sun-times">
+                            <div>↑ 5:05 AM</div>
+                            <div>↓ 5:39 PM</div>
+                        </div>
+                    </article>
+                </div>
+            </section>
+
+            <div class="sidebar-bottom">
+                <div class="sidebar-weather" aria-label="Current weather summary">
+                    <div class="weather-mini-icon" aria-hidden="true">☁</div>
+                    <div>
+                        <div class="mini-temperature">Ready</div>
+                        <div class="mini-condition">Ask for any location</div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main">
+            <header class="topbar">
+                <div class="mobile-brand" aria-label="WeatherGPT">
+                    <div class="brand-dot" aria-hidden="true"></div>
+                    <span>WeatherGPT</span>
+                </div>
+
+                <button class="menu-button" type="button" aria-label="Open menu">☰</button>
+            </header>
+
+            <section class="chat-container" id="chat-stream" aria-label="WeatherGPT chat" aria-live="polite">
+                <article class="welcome-card">
+                    <div class="welcome-icon" aria-hidden="true">✦</div>
+
+                    <div>
+                        <h1>Hello, I am WeatherGPT.</h1>
+                        <p>
+                            Ask for current weather, forecasts, rainfall risk, storm alerts,
+                            or travel conditions. <strong>Start with a city or region.</strong>
+                        </p>
+                    </div>
+                </article>
+            </section>
+
+            <div class="input-area" id="chat-form">
+                <div class="input-wrapper">
+                    <input
+                        id="user-input"
+                        name="message"
+                        type="text"
+                        aria-label="Ask WeatherGPT"
+                        placeholder="Ask about the weather..."
+                        autocomplete="off"
+                    >
+
+                    <button class="send-button" id="send-trigger" type="button" aria-label="Send message">
+                        <svg
+                            width="20"
+                            height="20"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                            aria-hidden="true"
+                            focusable="false"
+                        >
+                            <path
+                                d="M22 2L11 13"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                            />
+                            <path
+                                d="M22 2L15 22L11 13L2 9L22 2Z"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                            />
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="update-text">
+                    <span class="update-dot" aria-hidden="true"></span>
+                    <!-- <span>Connected to WeatherGPT backend through app.js</span> -->
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>
