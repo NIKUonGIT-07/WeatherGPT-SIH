@@ -1,3 +1,8 @@
+/* =========================================================
+   WEATHERGPT
+   Premium Dark Blue + Electric Cyan Theme
+========================================================= */
+
 
 /* =========================================================
    VARIABLES
@@ -552,9 +557,9 @@ body {
 }
 
 
-.menu-button {
+    .menu-button {
 
-    border: none;
+        border: none;
 
     background: transparent;
 
@@ -847,6 +852,13 @@ body {
         opacity: 0.3;
 
         transform: translateY(0);
+
+    }
+
+
+    .mobile-logout {
+
+        display: block;
 
     }
 
@@ -1493,4 +1505,201 @@ body {
 
     }
 
+}
+
+
+/* =========================================================
+   LOGIN
+========================================================= */
+
+.login-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background:
+        radial-gradient(
+            circle at 70% 20%,
+            rgba(0, 224, 255, 0.14),
+            transparent 32%
+        ),
+        radial-gradient(
+            circle at 20% 80%,
+            rgba(22, 140, 255, 0.12),
+            transparent 34%
+        ),
+        var(--background);
+}
+
+.login-screen.hidden {
+    display: none;
+}
+
+.login-card {
+    width: 100%;
+    max-width: 430px;
+    padding: 34px;
+    border-radius: 18px;
+    background:
+        linear-gradient(
+            135deg,
+            rgba(15, 43, 80, 0.96),
+            rgba(8, 25, 49, 0.96)
+        );
+    border: 1px solid rgba(71, 132, 195, 0.34);
+    box-shadow:
+        0 24px 70px rgba(0, 0, 0, 0.35),
+        0 0 40px rgba(0, 224, 255, 0.05);
+}
+
+.login-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 28px;
+    color: var(--white);
+    font-size: 22px;
+    font-weight: 700;
+}
+
+.login-card h1 {
+    margin-bottom: 8px;
+    color: var(--white);
+    font-size: 28px;
+    font-weight: 700;
+}
+
+.login-card p {
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1.7;
+}
+
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 26px;
+}
+
+.login-form label {
+    color: #A9BAD4;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.7px;
+    text-transform: uppercase;
+}
+
+.login-form input {
+    width: 100%;
+    height: 50px;
+    margin-bottom: 8px;
+    padding: 0 16px;
+    border: 1px solid #245185;
+    border-radius: 13px;
+    outline: none;
+    background: rgba(12, 33, 68, 0.96);
+    color: var(--white);
+    font-family: inherit;
+    font-size: 14px;
+    transition: all 0.2s ease;
+}
+
+.login-form input::placeholder {
+    color: #7890B0;
+}
+
+.login-form input:focus {
+    border-color: rgba(0, 224, 255, 0.6);
+    box-shadow:
+        0 0 0 3px rgba(0, 224, 255, 0.06),
+        0 8px 25px rgba(0, 0, 0, 0.18);
+}
+
+.login-button {
+    width: 100%;
+    height: 50px;
+    margin-top: 8px;
+    border: none;
+    border-radius: 13px;
+    background:
+        linear-gradient(
+            135deg,
+            #00D9F5,
+            #00AEEB
+        );
+    color: #03213B;
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.login-button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 0 24px rgba(0, 224, 255, 0.26);
+}
+
+.login-note {
+    margin-top: 18px;
+    text-align: center;
+    font-size: 12px;
+}
+
+.user-panel {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 18px;
+    padding: 13px;
+    border-radius: 12px;
+    background: rgba(0, 0, 0, 0.12);
+    border: 1px solid rgba(100, 160, 220, 0.08);
+}
+
+.user-label {
+    display: block;
+    margin-bottom: 4px;
+    color: var(--muted-dark);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+}
+
+.user-panel strong {
+    display: block;
+    max-width: 125px;
+    overflow: hidden;
+    color: var(--white);
+    font-size: 14px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.logout-button {
+    flex-shrink: 0;
+    padding: 8px 10px;
+    border: 1px solid rgba(103, 180, 255, 0.32);
+    border-radius: 9px;
+    background: rgba(22, 140, 255, 0.08);
+    color: var(--cyan);
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.logout-button:hover {
+    border-color: rgba(0, 224, 255, 0.55);
+    background: rgba(0, 224, 255, 0.1);
+}
+
+.mobile-logout {
+    display: none;
 }

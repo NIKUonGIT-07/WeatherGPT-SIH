@@ -16,11 +16,61 @@
 </head>
 
 <body>
+    <section class="login-screen" id="login-screen" aria-label="WeatherGPT login">
+        <div class="login-card">
+            <div class="login-brand">
+                <div class="brand-dot" aria-hidden="true"></div>
+                <span>WeatherGPT</span>
+            </div>
+
+            <div>
+                <h1>Welcome Back</h1>
+                <p>Sign in to start your weather assistant session.</p>
+            </div>
+
+            <form class="login-form" id="login-form" autocomplete="on">
+                <label for="login-name">Name</label>
+                <input
+                    id="login-name"
+                    type="text"
+                    name="name"
+                    placeholder="Enter your name"
+                    autocomplete="name"
+                    required
+                >
+
+                <label for="login-email">Email</label>
+                <input
+                    id="login-email"
+                    type="email"
+                    name="email"
+                    placeholder="Enter your email"
+                    autocomplete="email"
+                    required
+                >
+
+                <button class="login-button" type="submit">Continue</button>
+            </form>
+
+            <p class="login-note">
+                Demo login only. Your session is saved in this browser.
+            </p>
+        </div>
+    </section>
+
     <div class="app">
         <aside class="sidebar" aria-label="WeatherGPT sidebar">
             <div class="brand" aria-label="WeatherGPT">
                 <div class="brand-dot" aria-hidden="true"></div>
                 <span>WeatherGPT</span>
+            </div>
+
+            <div class="user-panel">
+                <div>
+                    <span class="user-label">SIGNED IN AS</span>
+                    <strong id="sidebar-user-name">Guest</strong>
+                </div>
+                <button class="logout-button" id="logout-button" type="button">Logout</button>
             </div>
 
             <button class="new-forecast" id="new-forecast" type="button">
@@ -59,8 +109,8 @@
                             <span class="insight-label">Air Quality</span>
                         </div>
                         <div class="insight-value">
-                            42
-                            <span class="insight-status status-good">Good</span>
+                            <span id="aqi-value">--</span>
+                            <span class="insight-status status-good" id="aqi-status">Ready</span>
                         </div>
                         <div class="insight-bar-bg" aria-hidden="true">
                             <div class="insight-bar-fill aqi-fill"></div>
@@ -73,8 +123,8 @@
                             <span class="insight-label">UV Index</span>
                         </div>
                         <div class="insight-value">
-                            3
-                            <span class="insight-status status-mod">Low</span>
+                            <span id="uv-value">--</span>
+                            <span class="insight-status status-mod" id="uv-status">Ready</span>
                         </div>
                         <div class="insight-bar-bg" aria-hidden="true">
                             <div class="insight-bar-fill uv-fill"></div>
@@ -87,8 +137,8 @@
                             <span class="insight-label">Sunrise & Sunset</span>
                         </div>
                         <div class="sun-times">
-                            <div>↑ 5:05 AM</div>
-                            <div>↓ 5:39 PM</div>
+                            <div id="sunrise-time">↑ --</div>
+                            <div id="sunset-time">↓ --</div>
                         </div>
                     </article>
                 </div>
@@ -113,6 +163,7 @@
                 </div>
 
                 <button class="menu-button" type="button" aria-label="Open menu">☰</button>
+                <button class="logout-button mobile-logout" id="mobile-logout-button" type="button">Logout</button>
             </header>
 
             <section class="chat-container" id="chat-stream" aria-label="WeatherGPT chat" aria-live="polite">
@@ -170,7 +221,7 @@
 
                 <div class="update-text">
                     <span class="update-dot" aria-hidden="true"></span>
-                    <!-- <span>Connected to WeatherGPT backend through app.js</span> -->
+                    <span>Connected to WeatherGPT backend through app.js</span>
                 </div>
             </div>
         </main>

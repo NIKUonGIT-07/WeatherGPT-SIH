@@ -1,19 +1,105 @@
+const loginScreen = document.getElementById("login-screen");
+const loginForm = document.getElementById("login-form");
+const loginNameInput = document.getElementById("login-name");
+const loginEmailInput = document.getElementById("login-email");
+const sidebarUserName = document.getElementById("sidebar-user-name");
+const logoutButton = document.getElementById("logout-button");
+const mobileLogoutButton = document.getElementById("mobile-logout-button");
+
 const input = document.querySelector(".input-wrapper input");
 const sendButton = document.querySelector(".send-button");
 const chatContainer = document.querySelector(".chat-container");
 const recentList = document.querySelector(".recent-list");
 const newForecastButton = document.querySelector(".new-forecast");
+const aqiValue = document.getElementById("aqi-value");
+const aqiStatus = document.getElementById("aqi-status");
+const uvValue = document.getElementById("uv-value");
+const uvStatus = document.getElementById("uv-status");
+const sunriseTime = document.getElementById("sunrise-time");
+const sunsetTime = document.getElementById("sunset-time");
 
 const API_URL = "http://127.0.0.1:8000/chat/";
-
-function scrollToBottom() {
-    chatContainer.scrollTop = chatContainer.scrollHeight;
-}
+const USER_STORAGE_KEY = "weathergpt_user";
+const RECENT_STORAGE_KEY = "weathergpt_recent_searches";
 
 function escapeHTML(text) {
     const div = document.createElement("div");
     div.textContent = text;
     return div.innerHTML;
+}
+
+function getSavedUser() {
+    const savedUser = localStorage.getItem(USER_STORAGE_KEY);
+
+    if (!savedUser) {
+        return null;
+    }
+
+    try {
+        return JSON.parse(savedUser);
+    } catch (error) {
+        localStorage.removeItem(USER_STORAGE_KEY);
+        return null;
+    }
+}
+
+function saveUser(user) {
+    localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
+}
+
+function showAppForUser(user) {
+    if (loginScreen) {
+        loginScreen.classList.add("hidden");
+    }
+
+    if (sidebarUserName) {
+        sidebarUserName.textContent = user.name;
+    }
+
+    resetChat(user.name);
+    input.focus();
+}
+
+function showLoginScreen() {
+    if (loginScreen) {
+        loginScreen.classList.remove("hidden");
+    }
+
+    if (loginNameInput) {
+        loginNameInput.focus();
+    }
+}
+
+function handleLogin(event) {
+    event.preventDefault();
+
+    const name = loginNameInput.value.trim();
+    const email = loginEmailInput.value.trim();
+
+    if (!name || !email) {
+        return;
+    }
+
+    const user = {
+        name,
+        email
+    };
+
+    saveUser(user);
+    showAppForUser(user);
+}
+
+function handleLogout() {
+    localStorage.removeItem(USER_STORAGE_KEY);
+    localStorage.removeItem(RECENT_STORAGE_KEY);
+
+    resetChat();
+    renderRecentSearches();
+    showLoginScreen();
+}
+
+function scrollToBottom() {
+    chatContainer.scrollTop = chatContainer.scrollHeight;
 }
 
 function appendUserMessage(message) {
@@ -80,8 +166,112 @@ function removeThinkingMessage(row) {
     }
 }
 
+function extractNumberAfterLabel(text, label) {
+    const pattern = new RegExp(`${label}\\s*:?\\s*([0-9]+(?:\\.[0-9]+)?)`, "i");
+    const match = text.match(pattern);
+
+    if (!match) {
+        return null;
+    }
+
+    return Number(match[1]);
+}
+
+function getInsightStatus(value, type) {
+    if (type === "aqi") {
+        if (value <= 50) return "Good";
+        if (value <= 100) return "Moderate";
+        return "Poor";
+    }
+
+    if (value <= 2) return "Low";
+    if (value <= 5) return "Moderate";
+    if (value <= 7) return "High";
+    return "Very High";
+}
+
+function estimateDailyInsights(reply) {
+    const condition = reply.toLowerCase();
+    const humidity = extractNumberAfterLabel(reply, "Humidity");
+    const windSpeed = extractNumberAfterLabel(reply, "Wind Speed");
+    const temperature = extractNumberAfterLabel(reply, "Temperature");
+
+    let estimatedAqi = 42;
+    let estimatedUv = 5;
+
+    if (condition.includes("rain") || condition.includes("thunderstorm")) {
+        estimatedAqi = 35;
+        estimatedUv = 2;
+    }
+
+    if (humidity !== null && humidity >= 85) {
+        estimatedAqi += 8;
+        estimatedUv = Math.max(1, estimatedUv - 1);
+    }
+
+    if (windSpeed !== null && windSpeed >= 25) {
+        estimatedAqi = Math.max(25, estimatedAqi - 6);
+    }
+
+    if (temperature !== null && temperature >= 34) {
+        estimatedUv = Math.min(9, estimatedUv + 2);
+    }
+
+    return {
+        aqi: estimatedAqi,
+        uv: estimatedUv,
+        sunrise: "↑ 5:05 AM",
+        sunset: "↓ 5:39 PM"
+    };
+}
+
+function updateDailyInsights(reply) {
+    const insights = estimateDailyInsights(reply);
+
+    if (aqiValue) {
+        aqiValue.textContent = insights.aqi;
+    }
+
+    if (aqiStatus) {
+        aqiStatus.textContent = getInsightStatus(insights.aqi, "aqi");
+        aqiStatus.className = insights.aqi <= 50
+            ? "insight-status status-good"
+            : "insight-status status-mod";
+    }
+
+    if (uvValue) {
+        uvValue.textContent = insights.uv;
+    }
+
+    if (uvStatus) {
+        uvStatus.textContent = getInsightStatus(insights.uv, "uv");
+        uvStatus.className = insights.uv <= 2
+            ? "insight-status status-good"
+            : "insight-status status-mod";
+    }
+
+    if (sunriseTime) {
+        sunriseTime.textContent = insights.sunrise;
+    }
+
+    if (sunsetTime) {
+        sunsetTime.textContent = insights.sunset;
+    }
+}
+
 function getRecentSearches() {
-    return JSON.parse(localStorage.getItem("weathergpt_recent_searches")) || [];
+    const searches = localStorage.getItem(RECENT_STORAGE_KEY);
+
+    if (!searches) {
+        return [];
+    }
+
+    try {
+        return JSON.parse(searches);
+    } catch (error) {
+        localStorage.removeItem(RECENT_STORAGE_KEY);
+        return [];
+    }
 }
 
 function saveRecentSearch(query) {
@@ -89,16 +279,16 @@ function saveRecentSearch(query) {
 
     searches = searches.filter(item => item.toLowerCase() !== query.toLowerCase());
     searches.unshift(query);
-
     searches = searches.slice(0, 5);
 
-    localStorage.setItem("weathergpt_recent_searches", JSON.stringify(searches));
-
+    localStorage.setItem(RECENT_STORAGE_KEY, JSON.stringify(searches));
     renderRecentSearches();
 }
 
 function renderRecentSearches() {
-    if (!recentList) return;
+    if (!recentList) {
+        return;
+    }
 
     const searches = getRecentSearches();
 
@@ -143,13 +333,15 @@ function attachRecentSearchEvents() {
     });
 }
 
-function resetChat() {
+function resetChat(name) {
+    const displayName = name || getSavedUser()?.name || "there";
+
     chatContainer.innerHTML = `
         <article class="welcome-card">
             <div class="welcome-icon">✦</div>
 
             <div>
-                <h1>Hello, I am WeatherGPT.</h1>
+                <h1>Hello, ${escapeHTML(displayName)}.</h1>
                 <p>
                     Ask for current weather, forecasts, rainfall risk, storm alerts,
                     or travel conditions. <strong>Start with a city or region.</strong>
@@ -159,13 +351,14 @@ function resetChat() {
     `;
 
     input.value = "";
-    input.focus();
 }
 
 async function handleQuery() {
     const query = input.value.trim();
 
-    if (!query) return;
+    if (!query) {
+        return;
+    }
 
     appendUserMessage(query);
     saveRecentSearch(query);
@@ -190,10 +383,11 @@ async function handleQuery() {
         }
 
         const data = await response.json();
+        const reply = data.reply || "WeatherGPT did not return a reply.";
 
         removeThinkingMessage(thinkingMessage);
-        appendBotMessage(data.reply || "WeatherGPT did not return a reply.");
-
+        appendBotMessage(reply);
+        updateDailyInsights(reply);
     } catch (error) {
         removeThinkingMessage(thinkingMessage);
 
@@ -205,16 +399,44 @@ async function handleQuery() {
     }
 }
 
-sendButton.addEventListener("click", handleQuery);
+if (loginForm) {
+    loginForm.addEventListener("submit", handleLogin);
+}
 
-input.addEventListener("keydown", function (event) {
-    if (event.key === "Enter") {
-        handleQuery();
-    }
-});
+if (logoutButton) {
+    logoutButton.addEventListener("click", handleLogout);
+}
+
+if (mobileLogoutButton) {
+    mobileLogoutButton.addEventListener("click", handleLogout);
+}
+
+if (sendButton) {
+    sendButton.addEventListener("click", handleQuery);
+}
+
+if (input) {
+    input.addEventListener("keydown", function (event) {
+        if (event.key === "Enter") {
+            handleQuery();
+        }
+    });
+}
 
 if (newForecastButton) {
-    newForecastButton.addEventListener("click", resetChat);
+    newForecastButton.addEventListener("click", function () {
+        resetChat();
+        input.focus();
+    });
 }
 
 renderRecentSearches();
+updateDailyInsights("");
+
+const savedUser = getSavedUser();
+
+if (savedUser) {
+    showAppForUser(savedUser);
+} else {
+    showLoginScreen();
+}
