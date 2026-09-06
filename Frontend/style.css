@@ -3,7 +3,6 @@
    Premium Dark Blue + Electric Cyan Theme
 ========================================================= */
 
-
 /* =========================================================
    VARIABLES
 ========================================================= */
@@ -856,12 +855,6 @@ body {
     }
 
 
-    .mobile-logout {
-
-        display: block;
-
-    }
-
     30% {
 
         opacity: 1;
@@ -1344,6 +1337,13 @@ body {
     .topbar {
 
         display: flex;
+
+    }
+
+
+    .mobile-logout {
+
+        display: block;
 
     }
 
