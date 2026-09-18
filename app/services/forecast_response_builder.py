@@ -19,7 +19,10 @@ Generated : {datetime.now().strftime("%d %B %Y, %I:%M %p")}
 
     for day in forecast:
 
-        date = datetime.strptime(day["date"], "%Y-%m-%d").strftime("%d %b %Y")
+        date = datetime.strptime(
+            day["date"],
+            "%Y-%m-%d"
+        ).strftime("%d %b %Y")
 
         response += f"""
 {date}
@@ -29,21 +32,29 @@ Generated : {datetime.now().strftime("%d %B %Y, %I:%M %p")}
 
 """
 
-        if "Rain" in day["condition"] or "Thunderstorm" in day["condition"]:
+        if (
+            "Rain" in day["condition"]
+            or "Thunderstorm" in day["condition"]
+        ):
             rainy_days += 1
 
     response += "Summary\n"
 
     if rainy_days >= 3:
+
         response += (
             "• Rain or thunderstorms are expected on most days.\n"
             "• Carry an umbrella if travelling.\n"
         )
+
     elif rainy_days > 0:
+
         response += (
             "• Some rainfall is expected during the forecast period.\n"
         )
+
     else:
+
         response += (
             "• No significant rainfall is expected.\n"
         )
@@ -55,3 +66,32 @@ Source
 """
 
     return response
+
+
+def build_single_day_response(
+    data: dict,
+    day: dict,
+    label: str
+):
+
+    date = datetime.strptime(
+        day["date"],
+        "%Y-%m-%d"
+    ).strftime("%d %B %Y")
+
+    return f"""
+Weather Forecast
+────────────────────────
+
+Location : {data['city']}, {data['country']}
+
+{label} : {date}
+
+• Condition : {day['condition']}
+• Max Temp  : {day['max_temp']} °C
+• Min Temp  : {day['min_temp']} °C
+
+Source
+• Provider : Open-Meteo
+• Status   : Forecast Data
+"""

@@ -1,11 +1,23 @@
+from datetime import datetime, timedelta
+
 from fastapi import APIRouter
 from pydantic import BaseModel
 
 from app.services.nlu import extract_city, detect_intent
+from app.services.gemini_nlu import understand_weather_query
+
 from app.services.weather_service import get_current_weather
-from app.services.forecast_service import get_forecast
+from app.services.forecast_service import (
+    get_forecast,
+    get_forecast_day
+)
+
 from app.services.response_builder import build_weather_response
-from app.services.forecast_response_builder import build_forecast_response
+from app.services.forecast_response_builder import (
+    build_forecast_response,
+    build_single_day_response
+)
+
 from app.services.ai_response_builder import build_ai_weather_response
 
 
@@ -19,22 +31,8 @@ class ChatRequest(BaseModel):
     message: str
 
 
-def is_rain_question(message: str) -> bool:
-    message = message.lower()
-
-    rain_keywords = [
-        "rain",
-        "raining",
-        "rainfall",
-        "shower",
-        "drizzle",
-        "umbrella"
-    ]
-
-    return any(keyword in message for keyword in rain_keywords)
-
-
 def build_rain_response(weather: dict) -> str:
+
     city = weather.get("city", "your location")
     country = weather.get("country", "")
     condition = weather.get("condition", "Unknown")
@@ -42,7 +40,12 @@ def build_rain_response(weather: dict) -> str:
     humidity = weather.get("humidity", "N/A")
     wind_speed = weather.get("wind_speed", "N/A")
 
-    location = f"{city}, {country}" if country else city
+    location = (
+        f"{city}, {country}"
+        if country
+        else city
+    )
+
     condition_text = str(condition).lower()
 
     rain_likely = (
@@ -53,11 +56,25 @@ def build_rain_response(weather: dict) -> str:
     )
 
     if rain_likely:
-        answer = "Yes, rain or thunderstorm activity is possible today."
-        advice = "Carry an umbrella or raincoat if you are going outside."
+
+        answer = (
+            "Yes, rain or thunderstorm activity "
+            "is possible today."
+        )
+
+        advice = (
+            "Carry an umbrella or raincoat "
+            "if you are going outside."
+        )
+
     else:
+
         answer = "Rain is not very likely right now."
-        advice = "You probably do not need an umbrella, but check again before travelling."
+
+        advice = (
+            "You probably do not need an umbrella, "
+            "but check again before travelling."
+        )
 
     return f"""
 Rain Check
@@ -85,57 +102,249 @@ Source
 
 @router.post("/")
 def chat(request: ChatRequest):
-    user_message = request.message
 
-    city = extract_city(user_message)
+    user_message = request.message.strip()
 
-    if not city:
+    if not user_message:
+
         return {
-            "reply": "Sorry, I couldn't identify the city in your message. Try asking: Will it rain today in Guwahati?"
+            "reply": "Please enter a weather question."
         }
 
-    if is_rain_question(user_message):
-        weather = get_current_weather(city)
+    # -----------------------------------
+    # Gemini NLU
+    # -----------------------------------
 
-        if "error" in weather:
+    try:
+
+        nlu_result = understand_weather_query(
+            user_message
+        )
+
+        print("GEMINI NLU RESULT:", nlu_result)
+
+        city = nlu_result.get("city")
+        intent = nlu_result.get("intent")
+        time = nlu_result.get("time")
+
+    except Exception:
+
+        # Fallback to rule-based NLU
+
+        city = extract_city(user_message)
+        intent = detect_intent(user_message)
+        time = "unspecified"
+
+    # -----------------------------------
+    # City fallback
+    # -----------------------------------
+
+    if not city:
+
+        city = extract_city(user_message)
+
+    if not city:
+
+        return {
+            "reply": (
+                "Sorry, I couldn't identify the city "
+                "in your message. Try asking: "
+                "What's the weather in Guwahati?"
+            )
+        }
+
+    # ===================================
+    # TOMORROW
+    # ===================================
+
+    if time == "tomorrow":
+
+        forecast = get_forecast(city)
+
+        if "error" in forecast:
+
             return {
-                "reply": weather["error"]
+                "reply": forecast["error"]
             }
 
-        normal_reply = build_rain_response(weather)
+        tomorrow_date = (
+            datetime.now() + timedelta(days=1)
+        ).strftime("%Y-%m-%d")
 
-        ai_reply = build_ai_weather_response(user_message, normal_reply)
+        tomorrow = get_forecast_day(
+            forecast,
+            tomorrow_date
+        )
+
+        if not tomorrow:
+
+            return {
+                "reply": (
+                    "Sorry, tomorrow's forecast "
+                    "is not available."
+                )
+            }
+
+        forecast_text = build_single_day_response(
+            forecast,
+            tomorrow,
+            "Tomorrow"
+        )
+
+        ai_reply = build_ai_weather_response(
+            user_message,
+            forecast_text
+        )
 
         return {
             "reply": ai_reply
         }
 
-    intent = detect_intent(user_message)
+    # ===================================
+    # TONIGHT
+    # ===================================
 
-    if intent == "current_weather":
+    if time == "tonight":
+
         weather = get_current_weather(city)
 
         if "error" in weather:
+
             return {
                 "reply": weather["error"]
             }
 
+        normal_reply = build_weather_response(
+            weather
+        )
+
+        ai_reply = build_ai_weather_response(
+            user_message,
+            normal_reply
+        )
+
         return {
-            "reply": build_weather_response(weather)
+            "reply": ai_reply
         }
 
-    elif intent == "forecast":
+    # ===================================
+    # THIS WEEK
+    # ===================================
+
+    if time == "this_week":
+
         forecast = get_forecast(city)
 
         if "error" in forecast:
+
             return {
                 "reply": forecast["error"]
             }
 
+        forecast_text = build_forecast_response(
+            forecast
+        )
+
+        ai_reply = build_ai_weather_response(
+            user_message,
+            forecast_text
+        )
+
         return {
-            "reply": build_forecast_response(forecast)
+            "reply": ai_reply
         }
 
+    # ===================================
+    # NEXT WEEK
+    # ===================================
+
+    if time == "next_week":
+
+        return {
+            "reply": (
+                "Sorry, next week's forecast is "
+                "not available yet. I currently "
+                "provide a 5-day forecast."
+            )
+        }
+
+    # ===================================
+    # FULL FORECAST
+    # ===================================
+
+    if intent == "forecast":
+
+        forecast = get_forecast(city)
+
+        if "error" in forecast:
+
+            return {
+                "reply": forecast["error"]
+            }
+
+        forecast_text = build_forecast_response(
+            forecast
+        )
+
+        ai_reply = build_ai_weather_response(
+            user_message,
+            forecast_text
+        )
+
+        return {
+            "reply": ai_reply
+        }
+
+    # ===================================
+    # CURRENT WEATHER
+    # ===================================
+
+    if intent in [
+        "current_weather",
+        "rain",
+        "temperature",
+        "humidity",
+        "wind",
+        "weather_advice"
+    ]:
+
+        weather = get_current_weather(city)
+
+        if "error" in weather:
+
+            return {
+                "reply": weather["error"]
+            }
+
+        if intent == "rain":
+
+            normal_reply = build_rain_response(
+                weather
+            )
+
+        else:
+
+            normal_reply = build_weather_response(
+                weather
+            )
+
+        ai_reply = build_ai_weather_response(
+            user_message,
+            normal_reply
+        )
+
+        return {
+            "reply": ai_reply
+        }
+
+    # ===================================
+    # UNKNOWN
+    # ===================================
+
     return {
-        "reply": "Sorry, I couldn't understand your request. Try: Weather in Guwahati, Forecast in Guwahati, or Will it rain today in Guwahati?"
+        "reply": (
+            "Sorry, I couldn't understand your request. "
+            "Try asking about the weather, temperature, "
+            "rain, humidity, wind, or forecast."
+        )
     }

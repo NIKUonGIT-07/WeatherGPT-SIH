@@ -97,3 +97,13 @@ def get_forecast(city: str):
         "country": location.get("country", ""),
         "forecast": forecast
     }
+def get_forecast_day(forecast_data: dict, target_date: str):
+    """
+    Find one specific day from the forecast.
+    """
+
+    for day in forecast_data["forecast"]:
+        if day["date"] == target_date:
+            return day
+
+    return None
