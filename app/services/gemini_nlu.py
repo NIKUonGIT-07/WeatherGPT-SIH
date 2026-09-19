@@ -20,11 +20,12 @@ def understand_weather_query(message: str) -> dict:
 You are the Natural Language Understanding system for WeatherGPT.
 
 Your task is to analyze a user's weather-related question and extract
-three pieces of information:
+four pieces of information:
 
 - city
 - intent
 - time
+- language
 
 USER QUESTION:
 "{message}"
@@ -63,27 +64,62 @@ Choose exactly one:
 - next_week
 - unspecified
 
+LANGUAGE:
+Identify the language used by the user.
+
+Choose exactly one:
+
+- english
+- hindi
+- assamese
+- bengali
+- other
+
+IMPORTANT:
+- Detect the language of the user's actual question.
+- Do not determine language from the city name.
+- If the question mixes English with another language,
+  choose the main language of the sentence.
+- If the language is not English, Hindi, Assamese, or Bengali,
+  return "other".
+
 Examples:
 
-Question: "What's the weather like in Guwahati?"
-Output:
-{{"city": "Guwahati", "intent": "current_weather", "time": "unspecified"}}
+Question:
+"What's the weather like in Guwahati?"
 
-Question: "Will it rain in Guwahati tomorrow?"
 Output:
-{{"city": "Guwahati", "intent": "rain", "time": "tomorrow"}}
+{{"city": "Guwahati", "intent": "current_weather", "time": "unspecified", "language": "english"}}
 
-Question: "How hot will it be in Delhi tomorrow?"
-Output:
-{{"city": "Delhi", "intent": "temperature", "time": "tomorrow"}}
+Question:
+"Will it rain in Guwahati tomorrow?"
 
-Question: "What's the humidity in Mumbai?"
 Output:
-{{"city": "Mumbai", "intent": "humidity", "time": "unspecified"}}
+{{"city": "Guwahati", "intent": "rain", "time": "tomorrow", "language": "english"}}
 
-Question: "Give me the forecast for Kolkata next week."
+Question:
+"दिल्ली में कल मौसम कैसा रहेगा?"
+
 Output:
-{{"city": "Kolkata", "intent": "forecast", "time": "next_week"}}
+{{"city": "Delhi", "intent": "current_weather", "time": "tomorrow", "language": "hindi"}}
+
+Question:
+"গুৱাহাটীত কাইলৈ বৰষুণ হ'ব নেকি?"
+
+Output:
+{{"city": "Guwahati", "intent": "rain", "time": "tomorrow", "language": "assamese"}}
+
+Question:
+"গুৱাহাটীর আবহাওয়া কেমন?"
+
+Output:
+{{"city": "Guwahati", "intent": "current_weather", "time": "unspecified", "language": "bengali"}}
+
+Question:
+"Give me the forecast for Kolkata next week."
+
+Output:
+{{"city": "Kolkata", "intent": "forecast", "time": "next_week", "language": "english"}}
 
 Return ONLY valid JSON.
 Do not add explanations or markdown.
@@ -92,7 +128,8 @@ JSON format:
 {{
     "city": "city name or null",
     "intent": "one allowed intent",
-    "time": "one allowed time value"
+    "time": "one allowed time value",
+    "language": "one allowed language"
 }}
 """
 
@@ -104,7 +141,7 @@ JSON format:
             config=types.GenerateContentConfig(
                 response_mime_type="application/json",
                 automatic_function_calling=types.AutomaticFunctionCallingConfig(
-                disable=True
+                    disable=True
                 )
             )
         )
@@ -120,5 +157,6 @@ JSON format:
         return {
             "city": None,
             "intent": "current_weather",
-            "time": "unspecified"
+            "time": "unspecified",
+            "language": "english"
         }

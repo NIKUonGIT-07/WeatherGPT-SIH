@@ -5,7 +5,6 @@ from app.database import Base, engine
 from app.models.user import User
 
 from app.routers import auth, chat, alerts, weather, forecast
-from app.services.gemini_nlu import understand_weather_query
 
 app = FastAPI(
     title="Raikyn AI API",
@@ -41,13 +40,3 @@ def health():
     return {
         "status": "healthy"
     }
-
-
-@app.get("/nlu-test")
-def nlu_test():
-
-    result = understand_weather_query(
-        "What's the weather like in Guwahati?"
-)
-
-    return result
