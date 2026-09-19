@@ -4,7 +4,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.database import Base, engine
 from app.models.user import User
 
-from app.routers import auth, chat, alerts, weather, forecast
+from app.routers import (
+    auth,
+    chat,
+    alerts,
+    weather,
+    forecast,
+    landslide
+)
 
 app = FastAPI(
     title="Raikyn AI API",
@@ -26,12 +33,14 @@ app.include_router(chat.router)
 app.include_router(alerts.router)
 app.include_router(weather.router)
 app.include_router(forecast.router)
+app.include_router(landslide.router)
+
 
 @app.get("/")
 def root():
     return {
         "project": "Raikyn AI",
-        "status": "Running 🚀"
+        "status": "Running"
     }
 
 

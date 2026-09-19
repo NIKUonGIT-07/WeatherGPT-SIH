@@ -1,83 +1,48 @@
-def generate_weather_alerts(weather: dict):
+def build_alert_response(city: str, country: str, alerts: list, forecast: bool = False) -> str:
+    location = f"{city}, {country}" if country else city
+    title = "Forecast Alerts" if forecast else "Weather Alerts"
 
-    alerts = []
+    if not alerts:
+        return f"""
+{title}
+────────────────────────
 
-    temperature = weather.get("temperature", 0)
-    humidity = weather.get("humidity", 0)
-    wind_speed = weather.get("wind_speed", 0)
-    condition = weather.get("condition", "")
+Location : {location}
 
-    # Thunderstorm
-    if "Thunderstorm" in condition:
-        alerts.append({
-            "level": "HIGH",
-            "type": "Thunderstorm",
-            "message": "Thunderstorm activity detected.",
-            "advice": [
-                "Avoid outdoor activities.",
-                "Stay away from tall trees and electric poles.",
-                "Follow official weather advisories."
-            ]
-        })
+• No significant WeatherGPT risk indications are currently detected.
+• These automated indications are not official government warnings.
 
-    # Heavy Rain
-    if "Rain" in condition:
-        alerts.append({
-            "level": "MEDIUM",
-            "type": "Heavy Rain",
-            "message": "Rainfall may affect travel conditions.",
-            "advice": [
-                "Carry an umbrella.",
-                "Drive carefully on wet roads."
-            ]
-        })
+Source
+• Provider : Open-Meteo
+• Status   : Live Weather Data
+"""
 
-    # Heatwave
-    if temperature >= 40:
-        alerts.append({
-            "level": "HIGH",
-            "type": "Heatwave",
-            "message": "Extremely high temperature detected.",
-            "advice": [
-                "Stay hydrated.",
-                "Avoid going outside during afternoon hours."
-            ]
-        })
+    response = f"""
+{title}
+────────────────────────
 
-    # Cold Wave
-    if temperature <= 5:
-        alerts.append({
-            "level": "MEDIUM",
-            "type": "Cold Wave",
-            "message": "Very low temperature detected.",
-            "advice": [
-                "Wear warm clothing.",
-                "Limit outdoor exposure."
-            ]
-        })
+Location : {location}
 
-    # Strong Wind
-    if wind_speed >= 40:
-        alerts.append({
-            "level": "MEDIUM",
-            "type": "Strong Wind",
-            "message": "Strong winds expected.",
-            "advice": [
-                "Secure loose outdoor objects.",
-                "Avoid parking under trees."
-            ]
-        })
+"""
 
-    # High Humidity
-    if humidity >= 90:
-        alerts.append({
-            "level": "LOW",
-            "type": "High Humidity",
-            "message": "Humidity levels are very high.",
-            "advice": [
-                "Drink enough water.",
-                "Wear light clothing."
-            ]
-        })
+    for alert in alerts:
+        response += f"""
+{alert['type']}
+• Level   : {alert['level']}
+• Message : {alert['message']}
+"""
+        if alert.get("advice"):
+            response += "• Advice  :\n"
+            for advice in alert["advice"]:
+                response += f"  • {advice}\n"
+        response += "\n"
 
-    return alerts
+    response += """Note
+• These are automated WeatherGPT risk indications based on forecast data.
+• They are not official government warnings.
+
+Source
+• Provider : Open-Meteo
+• Status   : Weather Data / Forecast
+"""
+    return response
