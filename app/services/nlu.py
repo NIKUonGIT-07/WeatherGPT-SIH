@@ -1,159 +1,90 @@
-def extract_city(message: str):
-    message = message.strip()
+def extract_city(text: str) -> str | None:
 
-    stop_words = [
-        "weather",
-        "forecast",
-        "today",
-        "tomorrow",
-        "tonight",
-        "will",
-        "it",
-        "rain",
-        "raining",
-        "rainfall",
-        "in",
-        "at",
-        "for",
-        "of",
-        "the",
-        "is",
-        "there",
-        "what",
-        "how",
-        "tell",
-        "me",
-        "about",
-        "please",
-        "should",
-        "i",
-        "carry",
-        "umbrella",
-        "an",
-        "a",
-        "current",
-        "alert",
-        "alerts",
-        "warning",
-        "warnings",
-        "advisory",
-        "advisories",
-        "severe",
-        "dangerous",
-        "weather",
-        "landslide",
-        "landslides",
-        "risk",
-        "danger",
-        "safe",
-        "outside",
-        "could",
-        "be",
-        "any",
-        "for",
-    ]
+    if not text:
+        return None
 
-    hindi_stop_words = [
-        "में",
-        "का",
-        "की",
-        "के",
-        "को",
-        "है",
-        "क्या",
-        "कोई",
-        "मौसम",
-        "चेतावनी",
-        "खतरा",
-        "भूस्खलन",
-        "जोखिम",
-        "बारिश",
-        "वर्षा",
-        "आज",
-        "कल",
-    ]
+    text = text.strip()
 
-    assamese_stop_words = [
-        "ত",
-        "তেওঁ",
-        "আছে",
-        "নেকি",
-        "বতৰ",
-        "সতৰ্কবাণী",
-        "ভূমিস্খলন",
-        "আশংকা",
-        "বৰষুণ",
-        "আজি",
-        "কাইলৈ",
-    ]
+    # --------------------------------------------------
+    # Known city names
+    # --------------------------------------------------
 
-    bengali_stop_words = [
-        "তে",
-        "এ",
-        "আছে",
-        "কি",
-        "নাকি",
-        "আবহাওয়া",
-        "সতর্কতা",
-        "ভূমিধস",
-        "ঝুঁকি",
-        "বৃষ্টি",
-        "আজ",
-        "আগামীকাল",
-    ]
+    city_map = {
+        # English
+        "guwahati": "Guwahati",
+        "delhi": "Delhi",
+        "mumbai": "Mumbai",
+        "kolkata": "Kolkata",
+        "chennai": "Chennai",
+        "bengaluru": "Bengaluru",
+        "bangalore": "Bengaluru",
+        "hyderabad": "Hyderabad",
 
-    words = (
-        message
-        .replace("?", "")
-        .replace(".", "")
-        .replace(",", "")
-        .replace("।", "")
-        .split()
-    )
+        # Hindi
+        "गुवाहाटी": "Guwahati",
+        "दिल्ली": "Delhi",
+        "मुंबई": "Mumbai",
+        "कोलकाता": "Kolkata",
+        "चेन्नई": "Chennai",
+        "बेंगलुरु": "Bengaluru",
+        "हैदराबाद": "Hyderabad",
 
-    lower_words = [word.lower() for word in words]
+        # Assamese
+        "গুৱাহাটী": "Guwahati",
+        "দিল্লী": "Delhi",
+        "মুম্বাই": "Mumbai",
+        "কলকাতা": "Kolkata",
 
-    all_stop_words = (
-        stop_words
-        + hindi_stop_words
-        + assamese_stop_words
-        + bengali_stop_words
-    )
+        # Bengali
+        "গুয়াহাটি": "Guwahati",
+        "গুৱাহাটী": "Guwahati",
+        "দিল্লি": "Delhi",
+        "মুম্বাই": "Mumbai",
+        "কলকাতা": "Kolkata",
+    }
 
-    # First try locations after common location words.
-    location_words = [
-        "in",
-        "at",
-        "for",
-        "में",
-        "में",
-        "ত",
-        "তে",
-        "এ"
-    ]
+    # --------------------------------------------------
+    # Direct city detection
+    # --------------------------------------------------
 
-    for keyword in location_words:
-        if keyword.lower() in lower_words:
-            index = lower_words.index(keyword.lower())
-            city_words = words[index + 1:]
+    text_lower = text.lower()
 
-            filtered_city = [
-                word for word in city_words
-                if word.lower() not in all_stop_words
-            ]
+    for name, canonical_name in city_map.items():
 
-            if filtered_city:
-                return " ".join(filtered_city).strip()
+        if name.lower() in text_lower:
+            return canonical_name
 
-    # Fallback: remove known weather words.
-    city_words = [
-        word
-        for word in words
-        if word.lower() not in all_stop_words
-    ]
+    # --------------------------------------------------
+    # Bengali / Assamese attached suffixes
+    # --------------------------------------------------
 
-    if city_words:
-        return " ".join(city_words).strip()
+    regional_variants = {
+        "গুয়াহাটিতে": "Guwahati",
+        "গুৱাহাটীতে": "Guwahati",
+        "গুৱাহাটীত": "Guwahati",
+        "গুৱাহাটিত": "Guwahati",
+    }
+
+    for variant, canonical_name in regional_variants.items():
+
+        if variant in text:
+            return canonical_name
+
+    # --------------------------------------------------
+    # Hindi attached forms
+    # --------------------------------------------------
+
+    hindi_variants = {
+        "गुवाहाटीमें": "Guwahati",
+        "दिल्लीमें": "Delhi",
+        "मुंबईमें": "Mumbai",
+        "कोलकातामें": "Kolkata",
+    }
+
+    for variant, canonical_name in hindi_variants.items():
+
+        if variant in text:
+            return canonical_name
 
     return None
 

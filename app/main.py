@@ -3,6 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.database import Base, engine
 from app.models.user import User
+from app.models.conversation import Conversation
+from app.models.message import Message
 
 from app.routers import (
     auth,
@@ -10,15 +12,16 @@ from app.routers import (
     alerts,
     weather,
     forecast,
-    landslide
+    landslide,
+    conversation
 )
 
+Base.metadata.create_all(bind=engine)
 app = FastAPI(
     title="Raikyn AI API",
     version="1.0.0"
 )
 
-Base.metadata.create_all(bind=engine)
 
 app.add_middleware(
     CORSMiddleware,
@@ -34,7 +37,7 @@ app.include_router(alerts.router)
 app.include_router(weather.router)
 app.include_router(forecast.router)
 app.include_router(landslide.router)
-
+app.include_router(conversation.router)
 
 @app.get("/")
 def root():

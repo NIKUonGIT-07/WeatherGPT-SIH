@@ -48,12 +48,21 @@
                     autocomplete="email"
                     required
                 >
+                <label for="login-password">Password</label>
+                <input
+                    id="login-password"
+                    type="password"
+                    name="password"
+                    placeholder="Enter your password"
+                    autocomplete="current-password"
+                    required
+                >
 
                 <button class="login-button" type="submit">Continue</button>
             </form>
 
             <p class="login-note">
-                Demo login only. Your session is saved in this browser.
+                Sign in with your WeatherGPT account.
             </p>
         </div>
     </section>
@@ -190,7 +199,41 @@
                         placeholder="Ask about the weather..."
                         autocomplete="off"
                     >
-
+                    <button class="voice-button" type="button" aria-label="Start voice input" title="Voice input">
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="20"
+                            height="20"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                        >
+                            <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
+                            <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                            <line x1="12" y1="19" x2="12" y2="22"/>
+                            <line x1="8" y1="22" x2="16" y2="22"/>
+                        </svg>
+                    </button>
+                    <button
+                                class="stop-voice-button"
+                                type="button"
+                                aria-label="Stop speaking"
+                                title="Stop speaking"
+                                style="display: none;"
+                        >
+                        <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="20"
+                                height="20"
+                                viewBox="0 0 24 24"
+                                fill="currentColor"
+                                stroke="currentColor">
+                            <rect x="6" y="6" width="12" height="12" rx="2"/>
+                        </svg>
+                    </button>
                     <button class="send-button" id="send-trigger" type="button" aria-label="Send message">
                         <svg
                             width="20"

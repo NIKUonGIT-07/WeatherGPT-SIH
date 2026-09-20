@@ -1703,3 +1703,134 @@ body {
 .mobile-logout {
     display: none;
 }
+/* =========================
+   VOICE BUTTON
+========================= */
+
+.input-wrapper .voice-button {
+    width: 42px !important;
+    height: 42px !important;
+
+    min-width: 42px !important;
+    min-height: 42px !important;
+
+    padding: 0 !important;
+    margin: 0 !important;
+
+    border: none !important;
+    outline: none !important;
+
+    border-radius: 12px !important;
+
+    background: transparent !important;
+
+    color: #168CFF !important;
+
+    cursor: pointer !important;
+
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    opacity: 1 !important;
+    visibility: visible !important;
+
+    position: relative !important;
+
+    transition:
+        background 0.2s ease,
+        color 0.2s ease,
+        transform 0.2s ease,
+        box-shadow 0.2s ease !important;
+}
+
+
+.input-wrapper .voice-button svg {
+    width: 20px !important;
+    height: 20px !important;
+
+    display: block !important;
+
+    color: inherit !important;
+
+    opacity: 1 !important;
+
+    pointer-events: none;
+}
+
+
+.input-wrapper .voice-button:hover {
+    background: rgba(22, 140, 255, 0.12) !important;
+
+    color: #00E0FF !important;
+}
+
+
+.input-wrapper .voice-button:active {
+    transform: scale(0.92) !important;
+}
+
+
+.input-wrapper .voice-button.listening {
+    background: rgba(22, 140, 255, 0.20) !important;
+
+    color: #00E0FF !important;
+
+    box-shadow:
+        0 0 0 4px rgba(22, 140, 255, 0.08),
+        0 0 15px rgba(22, 140, 255, 0.20) !important;
+
+    transform: scale(1.05) !important;
+}
+
+
+.input-wrapper .voice-button.listening svg {
+    animation: voicePulse 1s ease-in-out infinite;
+}
+
+
+@keyframes voicePulse {
+
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.12);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+.stop-voice-button {
+    width: 42px;
+    height: 42px;
+
+    border: 1px solid rgba(0, 224, 255, 0.35);
+    border-radius: 12px;
+
+    background: rgba(0, 224, 255, 0.08);
+    color: #00E0FF;
+
+    display: none;
+    align-items: center;
+    justify-content: center;
+
+    cursor: pointer;
+
+    transition:
+        background 0.2s ease,
+        transform 0.2s ease,
+        border-color 0.2s ease;
+}
+
+.stop-voice-button:hover {
+    background: rgba(0, 224, 255, 0.16);
+    border-color: #00E0FF;
+    transform: translateY(-1px);
+}
+
+.stop-voice-button:active {
+    transform: scale(0.95);
+}

@@ -2,49 +2,71 @@ from datetime import datetime, timedelta
 
 from fastapi import APIRouter
 from pydantic import BaseModel
+from functools import wraps
+
+from sqlalchemy.orm import Session
+from fastapi import Depends
+
+from app.database import get_db
+from app.models.user import User
+from app.models.conversation import Conversation
+from app.models.message import Message
+from app.services.auth_dependency import get_optional_current_user
+
 
 from app.services.nlu import (
     extract_city,
-    detect_intent
+    detect_intent,
+    fallback_understand_weather_query
 )
+
 
 from app.services.gemini_nlu import (
     understand_weather_query
 )
 
+
 from app.services.weather_service import (
     get_current_weather
 )
+
 
 from app.services.forecast_service import (
     get_forecast,
     get_forecast_day
 )
 
+
 from app.services.alert_service import (
     generate_weather_alerts
 )
+
 
 from app.services.alert_response_builder import (
     build_alert_response
 )
 
+
 from app.services.response_builder import (
     build_weather_response
 )
+
 
 from app.services.forecast_response_builder import (
     build_forecast_response,
     build_single_day_response
 )
 
+
 from app.services.ai_response_builder import (
     build_ai_weather_response
 )
 
+
 from app.services.landslide_risk_service import (
     calculate_landslide_risk
 )
+
 
 from app.services.landslide_response_builder import (
     build_landslide_risk_response
@@ -59,9 +81,123 @@ router = APIRouter(
 
 class ChatRequest(BaseModel):
     message: str
+    conversation_id: int | None = None
 
 
-def build_rain_response(weather: dict) -> str:
+# ==================================================
+# LOCAL NLU CONFIDENCE
+# ==================================================
+
+def local_nlu_is_confident(result: dict) -> bool:
+
+    city = result.get("city")
+    intent = result.get("intent")
+
+    if not city:
+        return False
+
+    if not intent:
+        return False
+
+    if intent == "unknown":
+        return False
+
+    return True
+
+
+# ==================================================
+# DECIDE WHETHER GEMINI LLM IS NEEDED
+# ==================================================
+
+def should_use_llm(
+    intent: str,
+    language: str
+) -> bool:
+
+    # --------------------------------------------------
+    # Weather advice benefits from LLM reasoning.
+    # --------------------------------------------------
+
+    if intent == "weather_advice":
+        return True
+
+
+    # --------------------------------------------------
+    # Non-English responses currently use Gemini
+    # so that Hindi, Bengali and Assamese responses
+    # remain natural and properly localized.
+    # --------------------------------------------------
+
+    if language != "english":
+        return True
+
+
+    # --------------------------------------------------
+    # Simple English weather requests can use the
+    # deterministic response builders directly.
+    # --------------------------------------------------
+
+    fast_intents = {
+        "current_weather",
+        "temperature",
+        "humidity",
+        "wind",
+        "rain",
+        "alerts",
+        "landslide_risk",
+        "forecast"
+    }
+
+    if intent in fast_intents:
+        return False
+
+
+    # Anything unknown/complex can use Gemini.
+    return True
+
+
+# ==================================================
+# FINAL RESPONSE BUILDER
+# ==================================================
+
+def build_final_response(
+    user_message: str,
+    verified_text: str,
+    intent: str,
+    language: str
+) -> str:
+
+    if not should_use_llm(
+        intent,
+        language
+    ):
+
+        print(
+            "FAST RESPONSE - "
+            "GEMINI LLM SKIPPED"
+        )
+
+        return verified_text
+
+
+    print(
+        "USING GEMINI LLM FOR RESPONSE"
+    )
+
+    return build_ai_weather_response(
+        user_message,
+        verified_text,
+        language
+    )
+
+
+# ==================================================
+# RAIN RESPONSE
+# ==================================================
+
+def build_rain_response(
+    weather: dict
+) -> str:
 
     city = weather.get(
         "city",
@@ -99,9 +235,11 @@ def build_rain_response(weather: dict) -> str:
         else city
     )
 
+
     condition_text = str(
         condition
     ).lower()
+
 
     rain_likely = (
         "rain" in condition_text
@@ -109,6 +247,7 @@ def build_rain_response(weather: dict) -> str:
         or "shower" in condition_text
         or "thunderstorm" in condition_text
     )
+
 
     if rain_likely:
 
@@ -133,6 +272,7 @@ def build_rain_response(weather: dict) -> str:
             "but check again before travelling."
         )
 
+
     return f"""
 Rain Check
 ────────────────────────
@@ -140,27 +280,148 @@ Rain Check
 Location : {location}
 
 Answer
+
 • {answer}
 
 Current Weather
+
 • Condition   : {condition}
 • Temperature : {temperature} °C
 • Humidity    : {humidity} %
 • Wind Speed  : {wind_speed} km/h
 
 Simple Advice
+
 • {advice}
 
 Source
+
 • Provider : Open-Meteo
 • Status   : Live Weather Data
 """
 
 
+# ==================================================
+# CHAT
+# ==================================================
+def save_chat_history(
+    user: User | None,
+    db: Session,
+    conversation_id: int | None,
+    user_message: str,
+    assistant_reply: str
+):
+    if user is None:
+        return None
+
+    conversation = None
+
+    # Existing conversation
+    if conversation_id is not None:
+        conversation = (
+            db.query(Conversation)
+            .filter(
+                Conversation.id == conversation_id,
+                Conversation.user_id == user.id
+            )
+            .first()
+        )
+
+        if conversation is None:
+            return None
+
+    # Create a new conversation
+    if conversation is None:
+        title = user_message.strip()
+
+        if len(title) > 60:
+            title = title[:57] + "..."
+
+        conversation = Conversation(
+            user_id=user.id,
+            title=title or "New Conversation"
+        )
+
+        db.add(conversation)
+        db.flush()
+
+    # Save user message
+    user_msg = Message(
+        conversation_id=conversation.id,
+        role="user",
+        content=user_message
+    )
+
+    # Save assistant message
+    assistant_msg = Message(
+        conversation_id=conversation.id,
+        role="assistant",
+        content=assistant_reply
+    )
+
+    db.add(user_msg)
+    db.add(assistant_msg)
+
+    # Make this conversation appear at the top
+    conversation.updated_at = datetime.now()
+
+    db.commit()
+
+    return conversation.id
+def persist_chat_response(func):
+
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+
+        result = func(*args, **kwargs)
+
+        if not isinstance(result, dict):
+            return result
+
+        reply = result.get("reply")
+
+        if not reply:
+            return result
+
+        request = kwargs.get("request")
+        db = kwargs.get("db")
+        current_user = kwargs.get("current_user")
+
+        if (
+            request is None
+            or db is None
+            or current_user is None
+        ):
+            return result
+
+        conversation_id = request.conversation_id
+
+        saved_conversation_id = save_chat_history(
+            user=current_user,
+            db=db,
+            conversation_id=conversation_id,
+            user_message=request.message,
+            assistant_reply=reply
+        )
+
+        if saved_conversation_id is not None:
+            result["conversation_id"] = saved_conversation_id
+
+        return result
+
+    return wrapper
 @router.post("/")
-def chat(request: ChatRequest):
+@persist_chat_response
+def chat(
+    request: ChatRequest,
+    db: Session = Depends(get_db),
+    current_user: User | None = Depends(
+        get_optional_current_user
+    )
+):
 
     user_message = request.message.strip()
+
 
     if not user_message:
 
@@ -170,63 +431,120 @@ def chat(request: ChatRequest):
             )
         }
 
-    # --------------------------------------------------
+
+    # ==================================================
     # NLU
-    # --------------------------------------------------
+    # ==================================================
 
-    try:
+    local_nlu_result = (
+        fallback_understand_weather_query(
+            user_message
+        )
+    )
 
-        nlu_result = (
-            understand_weather_query(
-                user_message
+
+    print(
+        "LOCAL NLU RESULT:",
+        local_nlu_result
+    )
+
+
+    if local_nlu_is_confident(
+        local_nlu_result
+    ):
+
+        nlu_result = local_nlu_result
+
+        print(
+            "USING LOCAL NLU"
+        )
+
+
+    else:
+
+        print(
+            "LOCAL NLU UNCERTAIN - "
+            "TRYING GEMINI NLU"
+        )
+
+
+        try:
+
+            nlu_result = (
+                understand_weather_query(
+                    user_message
+                )
             )
-        )
-
-        print(
-            "NLU RESULT:",
-            nlu_result
-        )
-
-        city = nlu_result.get(
-            "city"
-        )
-
-        intent = nlu_result.get(
-            "intent"
-        )
-
-        time = nlu_result.get(
-            "time"
-        )
-
-        language = nlu_result.get(
-            "language",
-            "english"
-        )
-
-    except Exception as e:
-
-        print(
-            "NLU ROUTING ERROR:",
-            repr(e)
-        )
-
-        city = extract_city(
-            user_message
-        )
-
-        intent = detect_intent(
-            user_message
-        )
-
-        time = "unspecified"
-
-        language = "english"
 
 
-    # --------------------------------------------------
+            print(
+                "GEMINI NLU RESULT:",
+                nlu_result
+            )
+
+
+        except Exception as e:
+
+            print(
+                "GEMINI NLU ERROR:",
+                repr(e)
+            )
+
+
+            nlu_result = {
+
+                "city": extract_city(
+                    user_message
+                ),
+
+                "intent": detect_intent(
+                    user_message
+                ),
+
+                "time": "unspecified",
+
+                "language": "english"
+            }
+
+
+            print(
+                "FINAL FALLBACK NLU RESULT:",
+                nlu_result
+            )
+
+
+    # ==================================================
+    # NLU VALUES
+    # ==================================================
+
+    city = nlu_result.get(
+        "city"
+    )
+
+    intent = nlu_result.get(
+        "intent"
+    )
+
+    time = nlu_result.get(
+        "time",
+        "unspecified"
+    )
+
+    language = nlu_result.get(
+        "language",
+        "english"
+    )
+
+
+    print(
+        "NLU RESULT:",
+        nlu_result
+    )
+
+
+    # ==================================================
     # CITY FALLBACK
-    # --------------------------------------------------
+    # ==================================================
 
     if not city:
 
@@ -246,9 +564,9 @@ def chat(request: ChatRequest):
         }
 
 
-    # --------------------------------------------------
+    # ==================================================
     # WEATHER ALERTS
-    # --------------------------------------------------
+    # ==================================================
 
     if intent == "alerts":
 
@@ -256,42 +574,50 @@ def chat(request: ChatRequest):
             city
         )
 
+
         if "error" in weather:
 
             return {
                 "reply": weather["error"]
             }
 
+
         alerts = generate_weather_alerts(
             weather
         )
+
 
         alert_text = build_alert_response(
             city=weather.get(
                 "city",
                 city
             ),
+
             country=weather.get(
                 "country",
                 ""
             ),
+
             alerts=alerts
         )
 
-        ai_reply = build_ai_weather_response(
+
+        final_reply = build_final_response(
             user_message,
             alert_text,
+            intent,
             language
         )
 
+
         return {
-            "reply": ai_reply
+            "reply": final_reply
         }
 
 
-    # --------------------------------------------------
+    # ==================================================
     # LANDSLIDE RISK
-    # --------------------------------------------------
+    # ==================================================
 
     if intent == "landslide_risk":
 
@@ -299,15 +625,18 @@ def chat(request: ChatRequest):
             city
         )
 
+
         if "error" in current_weather:
 
             return {
                 "reply": current_weather["error"]
             }
 
+
         forecast = get_forecast(
             city
         )
+
 
         if "error" in forecast:
 
@@ -315,37 +644,44 @@ def chat(request: ChatRequest):
                 "reply": forecast["error"]
             }
 
+
         risk = calculate_landslide_risk(
             forecast=forecast,
             current_weather=current_weather
         )
+
 
         risk_text = build_landslide_risk_response(
             city=current_weather.get(
                 "city",
                 city
             ),
+
             country=current_weather.get(
                 "country",
                 ""
             ),
+
             risk=risk
         )
 
-        ai_reply = build_ai_weather_response(
+
+        final_reply = build_final_response(
             user_message,
             risk_text,
+            intent,
             language
         )
 
+
         return {
-            "reply": ai_reply
+            "reply": final_reply
         }
 
 
-    # --------------------------------------------------
+    # ==================================================
     # TOMORROW
-    # --------------------------------------------------
+    # ==================================================
 
     if time == "tomorrow":
 
@@ -353,21 +689,27 @@ def chat(request: ChatRequest):
             city
         )
 
+
         if "error" in forecast:
 
             return {
                 "reply": forecast["error"]
             }
 
+
         tomorrow_date = (
             datetime.now()
             + timedelta(days=1)
-        ).strftime("%Y-%m-%d")
+        ).strftime(
+            "%Y-%m-%d"
+        )
+
 
         tomorrow = get_forecast_day(
             forecast,
             tomorrow_date
         )
+
 
         if not tomorrow:
 
@@ -378,26 +720,30 @@ def chat(request: ChatRequest):
                 )
             }
 
+
         forecast_text = build_single_day_response(
             forecast,
             tomorrow,
             "Tomorrow"
         )
 
-        ai_reply = build_ai_weather_response(
+
+        final_reply = build_final_response(
             user_message,
             forecast_text,
+            intent,
             language
         )
 
+
         return {
-            "reply": ai_reply
+            "reply": final_reply
         }
 
 
-    # --------------------------------------------------
+    # ==================================================
     # TONIGHT
-    # --------------------------------------------------
+    # ==================================================
 
     if time == "tonight":
 
@@ -405,30 +751,35 @@ def chat(request: ChatRequest):
             city
         )
 
+
         if "error" in weather:
 
             return {
                 "reply": weather["error"]
             }
 
+
         normal_reply = build_weather_response(
             weather
         )
 
-        ai_reply = build_ai_weather_response(
+
+        final_reply = build_final_response(
             user_message,
             normal_reply,
+            intent,
             language
         )
 
+
         return {
-            "reply": ai_reply
+            "reply": final_reply
         }
 
 
-    # --------------------------------------------------
+    # ==================================================
     # THIS WEEK
-    # --------------------------------------------------
+    # ==================================================
 
     if time == "this_week":
 
@@ -436,30 +787,35 @@ def chat(request: ChatRequest):
             city
         )
 
+
         if "error" in forecast:
 
             return {
                 "reply": forecast["error"]
             }
 
+
         forecast_text = build_forecast_response(
             forecast
         )
 
-        ai_reply = build_ai_weather_response(
+
+        final_reply = build_final_response(
             user_message,
             forecast_text,
+            intent,
             language
         )
 
+
         return {
-            "reply": ai_reply
+            "reply": final_reply
         }
 
 
-    # --------------------------------------------------
+    # ==================================================
     # NEXT WEEK
-    # --------------------------------------------------
+    # ==================================================
 
     if time == "next_week":
 
@@ -472,9 +828,9 @@ def chat(request: ChatRequest):
         }
 
 
-    # --------------------------------------------------
+    # ==================================================
     # FORECAST
-    # --------------------------------------------------
+    # ==================================================
 
     if intent == "forecast":
 
@@ -482,49 +838,63 @@ def chat(request: ChatRequest):
             city
         )
 
+
         if "error" in forecast:
 
             return {
                 "reply": forecast["error"]
             }
 
+
         forecast_text = build_forecast_response(
             forecast
         )
 
-        ai_reply = build_ai_weather_response(
+
+        final_reply = build_final_response(
             user_message,
             forecast_text,
+            intent,
             language
         )
 
+
         return {
-            "reply": ai_reply
+            "reply": final_reply
         }
 
 
-    # --------------------------------------------------
+    # ==================================================
     # CURRENT WEATHER / OTHER WEATHER INTENTS
-    # --------------------------------------------------
+    # ==================================================
 
     if intent in [
+
         "current_weather",
+
         "rain",
+
         "temperature",
+
         "humidity",
+
         "wind",
+
         "weather_advice"
+
     ]:
 
         weather = get_current_weather(
             city
         )
 
+
         if "error" in weather:
 
             return {
                 "reply": weather["error"]
             }
+
 
         if intent == "rain":
 
@@ -538,20 +908,23 @@ def chat(request: ChatRequest):
                 weather
             )
 
-        ai_reply = build_ai_weather_response(
+
+        final_reply = build_final_response(
             user_message,
             normal_reply,
+            intent,
             language
         )
 
+
         return {
-            "reply": ai_reply
+            "reply": final_reply
         }
 
 
-    # --------------------------------------------------
+    # ==================================================
     # UNKNOWN INTENT
-    # --------------------------------------------------
+    # ==================================================
 
     return {
         "reply": (
