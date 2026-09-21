@@ -29,36 +29,221 @@
             </div>
 
             <form class="login-form" id="login-form" autocomplete="on">
-                <label for="login-name">Name</label>
-                <input
-                    id="login-name"
-                    type="text"
-                    name="name"
-                    placeholder="Enter your name"
-                    autocomplete="name"
-                    required
-                >
-
-                <label for="login-email">Email</label>
-                <input
-                    id="login-email"
-                    type="email"
-                    name="email"
-                    placeholder="Enter your email"
-                    autocomplete="email"
-                    required
-                >
-                <label for="login-password">Password</label>
-                <input
-                    id="login-password"
-                    type="password"
-                    name="password"
-                    placeholder="Enter your password"
-                    autocomplete="current-password"
-                    required
-                >
-
-                <button class="login-button" type="submit">Continue</button>
+            
+                <div id="login-fields">
+            
+                    <label for="login-identifier">Email or Phone</label>
+                    <input
+                        id="login-identifier"
+                        type="text"
+                        name="identifier"
+                        placeholder="Enter your email or phone"
+                        autocomplete="username"
+                        required
+                    >
+            
+                    <label for="login-password">Password</label>
+                    <div class="password-wrapper">
+                        <input
+                            id="login-password"
+                            type="password"
+                            name="password"
+                            placeholder="Enter your password"
+                            autocomplete="current-password"
+                            required
+                        >
+                    
+                        <button
+                            type="button"
+                            class="password-toggle"
+                            id="toggle-login-password"
+                            aria-label="Show password"
+                            title="Show password"
+                        >
+                            <svg
+                                class="eye-icon"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                xmlns="http://www.w3.org/2000/svg"
+                                aria-hidden="true"
+                            >
+                                <path
+                                    d="M2.5 12C4.4 7.9 7.8 5.5 12 5.5S19.6 7.9 21.5 12C19.6 16.1 16.2 18.5 12 18.5S4.4 16.1 2.5 12Z"
+                                    stroke="currentColor"
+                                    stroke-width="1.8"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                />
+                                <circle
+                                    cx="12"
+                                    cy="12"
+                                    r="3"
+                                    stroke="currentColor"
+                                    stroke-width="1.8"
+                                />
+                            </svg>
+                        </button>
+                    </div>
+            
+                    <button class="login-button" type="submit">
+                        Sign In
+                    </button>
+            
+                    <p class="auth-switch">
+                        Don't have an account?
+                        <button
+                            type="button"
+                            class="auth-link"
+                            id="show-register"
+                        >
+                            Create account
+                        </button>
+                    </p>
+            
+                </div>
+            
+            
+                <div id="register-fields" style="display: none;">
+            
+                    <label for="register-username">Username</label>
+                    <input
+                        id="register-username"
+                        type="text"
+                        name="username"
+                        placeholder="Choose a username"
+                        autocomplete="username"
+                    >
+            
+                    <label for="register-email">Email</label>
+                    <input
+                        id="register-email"
+                        type="email"
+                        name="email"
+                        placeholder="Enter your email"
+                        autocomplete="email"
+                    >
+            
+                    <label for="register-phone">Phone</label>
+                    <input
+                        id="register-phone"
+                        type="tel"
+                        name="phone"
+                        placeholder="10-digit phone number"
+                        autocomplete="tel"
+                        maxlength="10"
+                    >
+            
+                    <label for="register-password">Password</label>
+                    
+                    <div class="password-wrapper">
+                        <input
+                            id="register-password"
+                            type="password"
+                            name="password"
+                            placeholder="Create a password"
+                            autocomplete="new-password"
+                        >
+                    
+                        <button
+                            type="button"
+                            class="password-toggle"
+                            id="toggle-register-password"
+                            aria-label="Show password"
+                            title="Show password"
+                        >
+                            <svg
+                                class="eye-icon"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                xmlns="http://www.w3.org/2000/svg"
+                                aria-hidden="true"
+                            >
+                                <path
+                                    d="M2.5 12C4.4 7.9 7.8 5.5 12 5.5S19.6 7.9 21.5 12C19.6 16.1 16.2 18.5 12 18.5S4.4 16.1 2.5 12Z"
+                                    stroke="currentColor"
+                                    stroke-width="1.8"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                />
+                                <circle
+                                    cx="12"
+                                    cy="12"
+                                    r="3"
+                                    stroke="currentColor"
+                                    stroke-width="1.8"
+                                />
+                            </svg>
+                        </button>
+                    </div>
+            
+                    <label for="register-confirm-password">
+                        Confirm Password
+                    </label>
+                    
+                    <div class="password-wrapper">
+                        <input
+                            id="register-confirm-password"
+                            type="password"
+                            name="confirm-password"
+                            placeholder="Confirm your password"
+                            autocomplete="new-password"
+                        >
+                    
+                        <button
+                            type="button"
+                            class="password-toggle"
+                            id="toggle-confirm-password"
+                            aria-label="Show password"
+                            title="Show password"
+                        >
+                            <svg
+                                class="eye-icon"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                xmlns="http://www.w3.org/2000/svg"
+                                aria-hidden="true"
+                            >
+                                <path
+                                    d="M2.5 12C4.4 7.9 7.8 5.5 12 5.5S19.6 7.9 21.5 12C19.6 16.1 16.2 18.5 12 18.5S4.4 16.1 2.5 12Z"
+                                    stroke="currentColor"
+                                    stroke-width="1.8"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                />
+                                <circle
+                                    cx="12"
+                                    cy="12"
+                                    r="3"
+                                    stroke="currentColor"
+                                    stroke-width="1.8"
+                                />
+                            </svg>
+                        </button>
+                    </div>
+            
+                    <button
+                        class="login-button"
+                        id="register-button"
+                        type="button"
+                    >
+                        Create Account
+                    </button>
+            
+                    <p class="auth-switch">
+                        Already have an account?
+                        <button
+                            type="button"
+                            class="auth-link"
+                            id="show-login"
+                        >
+                            Sign in
+                        </button>
+                    </p>
+            
+                </div>
+            
+                <p class="auth-error" id="auth-error"></p>
+            
             </form>
 
             <p class="login-note">

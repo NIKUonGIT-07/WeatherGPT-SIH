@@ -17,15 +17,13 @@ router = APIRouter(
 
 
 @router.post("/register", response_model=UserResponse)
-def register(
-    user: UserCreate,
-    db: Session = Depends(get_db)
-):
+def register(user: UserCreate, db: Session = Depends(get_db)):
 
-    # Check if username already exists
-    existing_username = db.query(User).filter(
-        User.username == user.username
-    ).first()
+    existing_username = (
+        db.query(User)
+        .filter(User.username == user.username)
+        .first()
+    )
 
     if existing_username:
         raise HTTPException(
@@ -33,10 +31,11 @@ def register(
             detail="Username already exists"
         )
 
-    # Check if email already exists
-    existing_email = db.query(User).filter(
-        User.email == user.email
-    ).first()
+    existing_email = (
+        db.query(User)
+        .filter(User.email == user.email)
+        .first()
+    )
 
     if existing_email:
         raise HTTPException(
@@ -44,49 +43,60 @@ def register(
             detail="Email already registered"
         )
 
-    # Hash the password
+    if user.phone:
+        existing_phone = (
+            db.query(User)
+            .filter(User.phone == user.phone)
+            .first()
+        )
+
+        if existing_phone:
+            raise HTTPException(
+                status_code=400,
+                detail="Phone number already registered"
+            )
+
     hashed_password = hash_password(user.password)
 
-    # Create new user
     new_user = User(
         username=user.username,
         email=user.email,
+        phone=user.phone,
         password_hash=hashed_password
     )
 
-    # Save user to database
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
 
     return new_user
 @router.post("/login")
-def login(
-    user: UserLogin,
-    db: Session = Depends(get_db)
-):
-    # Find user by email
-    existing_user = db.query(User).filter(
-        User.email == user.email
-    ).first()
+def login(user: UserLogin, db: Session = Depends(get_db)):
+
+    existing_user = (
+        db.query(User)
+        .filter(
+            (User.email == user.identifier) |
+            (User.phone == user.identifier)
+        )
+        .first()
+    )
 
     if not existing_user:
         raise HTTPException(
             status_code=401,
-            detail="Invalid email or password"
+            detail="Invalid email/phone or password"
         )
 
-    # Verify password
     if not verify_password(
         user.password,
         existing_user.password_hash
     ):
         raise HTTPException(
             status_code=401,
-            detail="Invalid email or password"
+            detail="Invalid email/phone or password"
         )
 
-    # Create JWT token
     access_token = create_access_token({
         "user_id": existing_user.id,
         "email": existing_user.email

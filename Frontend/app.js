@@ -5,10 +5,51 @@
 const loginScreen = document.getElementById("login-screen");
 const loginForm = document.getElementById("login-form");
 
-const loginNameInput = document.getElementById("login-name");
-const loginEmailInput = document.getElementById("login-email");
-const loginPasswordInput = document.getElementById("login-password");
+const loginFields = document.getElementById("login-fields");
+const registerFields = document.getElementById("register-fields");
+const toggleLoginPassword =
+    document.getElementById("toggle-login-password");
 
+const toggleRegisterPassword =
+    document.getElementById("toggle-register-password");
+
+const toggleConfirmPassword =
+    document.getElementById("toggle-confirm-password");
+const loginIdentifierInput =
+document.getElementById("login-identifier");
+
+const loginPasswordInput =
+document.getElementById("login-password");
+
+const registerUsernameInput =
+document.getElementById("register-username");
+
+const registerEmailInput =
+document.getElementById("register-email");
+
+const registerPhoneInput =
+    document.getElementById("register-phone");
+    
+    const registerPasswordInput =
+    document.getElementById("register-password");
+    
+    const registerConfirmPasswordInput =
+    document.getElementById("register-confirm-password");
+    
+const showRegisterButton =
+document.getElementById("show-register");
+
+const showLoginButton =
+document.getElementById("show-login");
+
+const registerButton =
+document.getElementById("register-button");
+
+const authError =
+document.getElementById("auth-error");
+
+const identifier = loginIdentifierInput.value.trim();
+const password = loginPasswordInput.value;
 const sidebarUserName = document.getElementById("sidebar-user-name");
 
 const logoutButton = document.getElementById("logout-button");
@@ -119,15 +160,17 @@ function showLoginScreen() {
 async function handleLogin(event) {
     event.preventDefault();
 
-    const name = loginNameInput.value.trim();
-    const email = loginEmailInput.value.trim();
+    const identifier = loginIdentifierInput.value.trim();
     const password = loginPasswordInput.value;
 
-    if (!name || !email || !password) {
+    authError.textContent = "";
+
+    if (!identifier || !password) {
+        authError.textContent = "Please enter your email/phone and password.";
         return;
     }
 
-    const loginButton = loginForm.querySelector(".login-button");
+    const loginButton = loginFields.querySelector(".login-button");
     const originalText = loginButton.textContent;
 
     loginButton.disabled = true;
@@ -140,7 +183,7 @@ async function handleLogin(event) {
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({
-                email: email,
+                identifier: identifier,
                 password: password
             })
         });
@@ -148,7 +191,9 @@ async function handleLogin(event) {
         const data = await response.json();
 
         if (!response.ok) {
-            throw new Error(data.detail || "Login failed.");
+            throw new Error(
+                data.detail || "Invalid email/phone or password."
+            );
         }
 
         localStorage.setItem(
@@ -156,11 +201,14 @@ async function handleLogin(event) {
             data.access_token
         );
 
-        const userResponse = await fetch(`${API_BASE_URL}/auth/me`, {
-            headers: {
-                "Authorization": `Bearer ${data.access_token}`
+        const userResponse = await fetch(
+            `${API_BASE_URL}/auth/me`,
+            {
+                headers: {
+                    "Authorization": `Bearer ${data.access_token}`
+                }
             }
-        });
+        );
 
         if (!userResponse.ok) {
             throw new Error("Could not load your account.");
@@ -181,13 +229,110 @@ async function handleLogin(event) {
 
     } catch (error) {
         console.error("Login error:", error);
-        alert(error.message || "Unable to sign in.");
+        authError.textContent =
+            error.message || "Unable to sign in.";
 
     } finally {
         loginButton.disabled = false;
         loginButton.textContent = originalText;
     }
 }
+async function handleRegister() {
+    const username = registerUsernameInput.value.trim();
+    const email = registerEmailInput.value.trim();
+    const phone = registerPhoneInput.value.trim();
+    const password = registerPasswordInput.value;
+    const confirmPassword =
+        registerConfirmPasswordInput.value;
+
+    authError.textContent = "";
+
+    if (!username || !email || !password || !confirmPassword) {
+        authError.textContent =
+            "Please fill in all required fields.";
+        return;
+    }
+    if (password.length < 8) {
+        authError.textContent =
+            "Password must be at least 8 characters.";
+        return;
+    }
+    if (password !== confirmPassword) {
+        authError.textContent =
+            "Passwords do not match.";
+        return;
+    }
+
+    if (phone && !/^\d{10}$/.test(phone)) {
+        authError.textContent =
+            "Phone number must be exactly 10 digits.";
+        return;
+    }
+
+    registerButton.disabled = true;
+    registerButton.textContent = "Creating account...";
+
+    try {
+        const response = await fetch(
+            `${API_BASE_URL}/auth/register`,
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    username: username,
+                    email: email,
+                    phone: phone || null,
+                    password: password
+                })
+            }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(
+                data.detail || "Registration failed."
+            );
+        }
+
+        /*
+         * Registration successful.
+         * Switch back to login.
+         */
+        registerFields.style.display = "none";
+        loginFields.style.display = "block";
+
+        loginIdentifierInput.value = email;
+        loginPasswordInput.value = "";
+
+        registerUsernameInput.value = "";
+        registerEmailInput.value = "";
+        registerPhoneInput.value = "";
+        registerPasswordInput.value = "";
+        registerConfirmPasswordInput.value = "";
+
+        authError.style.color = "#5bc0ff";
+        authError.textContent =
+            "Account created successfully. Please sign in.";
+
+    } catch (error) {
+        console.error("Registration error:", error);
+
+        authError.style.color = "#ff6b6b";
+        authError.textContent =
+            error.message || "Unable to create account.";
+
+    } finally {
+        registerButton.disabled = false;
+        registerButton.textContent = "Create Account";
+    }
+}
+registerButton.addEventListener(
+    "click",
+    handleRegister
+);
 
 
 function handleLogout() {
@@ -210,7 +355,40 @@ function handleLogout() {
     showLoginScreen();
 }
 
+function setupPasswordToggle(button, input) {
+    button.addEventListener("click", () => {
+        const showing = input.type === "text";
 
+        input.type = showing ? "password" : "text";
+
+        button.setAttribute(
+            "aria-label",
+            showing ? "Show password" : "Hide password"
+        );
+
+        button.setAttribute(
+            "title",
+            showing ? "Show password" : "Hide password"
+        );
+
+        button.classList.toggle("password-visible", !showing);
+    });
+}
+
+setupPasswordToggle(
+    toggleLoginPassword,
+    loginPasswordInput
+);
+
+setupPasswordToggle(
+    toggleRegisterPassword,
+    registerPasswordInput
+);
+
+setupPasswordToggle(
+    toggleConfirmPassword,
+    registerConfirmPasswordInput
+);
 /* =========================
    CHAT UI
 ========================= */
@@ -1073,6 +1251,17 @@ if (input) {
         }
     );
 }
+showRegisterButton.addEventListener("click", () => {
+    loginFields.style.display = "none";
+    registerFields.style.display = "block";
+    authError.textContent = "";
+});
+
+showLoginButton.addEventListener("click", () => {
+    registerFields.style.display = "none";
+    loginFields.style.display = "block";
+    authError.textContent = "";
+});
 /* New forecast */
 newForecastButton.addEventListener("click", () => {
     currentConversationId = null;

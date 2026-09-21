@@ -1834,3 +1834,112 @@ body {
 .stop-voice-button:active {
     transform: scale(0.95);
 }
+/* =========================================
+   Authentication UI
+   ========================================= */
+
+.auth-switch {
+    margin-top: 16px;
+    text-align: center;
+    font-size: 13px;
+}
+
+.auth-link {
+    background: none;
+    border: none;
+    padding: 0;
+    margin-left: 4px;
+    color: #5bc0ff;
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.auth-link:hover {
+    text-decoration: underline;
+}
+
+.auth-error {
+    min-height: 18px;
+    margin: 10px 0 0;
+    text-align: center;
+    font-size: 13px;
+    color: #ff6b6b;
+}
+
+#register-fields {
+    width: 100%;
+}
+
+#register-fields label,
+#login-fields label {
+    display: block;
+    margin-top: 12px;
+}
+
+#register-fields input,
+#login-fields input {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+#register-fields .login-button {
+    margin-top: 18px;
+}
+
+.login-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+.password-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.password-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.password-wrapper input {
+    width: 100%;
+    padding-right: 46px;
+    box-sizing: border-box;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+
+    width: 30px;
+    height: 30px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 0;
+    border: none;
+    background: transparent;
+
+    color: #7f8da8;
+    cursor: pointer;
+
+    border-radius: 6px;
+}
+
+.password-toggle:hover {
+    color: #5bc0ff;
+    background: rgba(91, 192, 255, 0.08);
+}
+
+.eye-icon {
+    width: 19px;
+    height: 19px;
+}
+
+.password-toggle.password-visible {
+    color: #5bc0ff;
+}
