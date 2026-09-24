@@ -128,23 +128,19 @@ function saveUser(user) {
     );
 }
 
-
 function showAppForUser(user) {
     if (loginScreen) {
         loginScreen.classList.add("hidden");
     }
-
     if (sidebarUserName) {
-        sidebarUserName.textContent = user.name;
+        sidebarUserName.textContent = user.username;
     }
-
-    resetChat(user.name);
+    resetChat(user.username);
 
     if (input) {
         input.focus();
     }
 }
-
 
 function showLoginScreen() {
     if (loginScreen) {
@@ -419,22 +415,106 @@ function appendUserMessage(message) {
 
 function appendBotMessage(message) {
     const row = document.createElement("div");
-
     row.className = "message-row ai-row";
 
-    row.innerHTML = `
-        <div class="ai-avatar">✦</div>
+    const avatar = document.createElement("div");
+    avatar.className = "ai-avatar";
+    avatar.textContent = "✦";
 
-        <div class="forecast-card">
-            <pre style="
-                white-space: pre-wrap;
-                font-family: Inter, sans-serif;
-                margin: 0;
-                line-height: 1.6;
-                color: inherit;
-            ">${escapeHTML(message)}</pre>
-        </div>
-    `;
+    const card = document.createElement("div");
+    card.className = "forecast-card weather-response-card";
+
+    const lines = message.split("\n");
+
+    let html = "";
+    let currentSection = null;
+
+    lines.forEach(line => {
+        const trimmed = line.trim();
+
+        if (!trimmed) {
+            return;
+        }
+
+        if (
+            trimmed === "Weather Report" ||
+            trimmed === "Rain Check" ||
+            trimmed === "Weather Forecast" ||
+            trimmed === "5-Day Weather Forecast"
+        ) {
+            html += `
+                <div class="weather-response-title">
+                    ${escapeHTML(trimmed)}
+                </div>
+            `;
+            return;
+        }
+
+        if (
+            trimmed === "Location" ||
+            trimmed === "Answer" ||
+            trimmed === "Current Weather" ||
+            trimmed === "Current Conditions" ||
+            trimmed === "Assessment" ||
+            trimmed === "Recommendations" ||
+            trimmed === "Simple Advice" ||
+            trimmed === "Source" ||
+            trimmed === "Summary"
+        ) {
+            currentSection = trimmed;
+
+            html += `
+                <div class="weather-section-title">
+                    ${escapeHTML(trimmed)}
+                </div>
+            `;
+
+            return;
+        }
+
+        if (trimmed.startsWith("─")) {
+            return;
+        }
+
+        if (trimmed.startsWith("•")) {
+            html += `
+                <div class="weather-response-line">
+                    ${escapeHTML(trimmed)}
+                </div>
+            `;
+            return;
+        }
+
+        if (trimmed.includes(":")) {
+            const parts = trimmed.split(":");
+            const label = parts.shift().trim();
+            const value = parts.join(":").trim();
+
+            html += `
+                <div class="weather-data-row">
+                    <span class="weather-data-label">
+                        ${escapeHTML(label)}
+                    </span>
+                    <span class="weather-data-value">
+                        ${escapeHTML(value)}
+                    </span>
+                </div>
+            `;
+
+            return;
+        }
+
+        html += `
+            <div class="weather-response-line">
+                ${escapeHTML(trimmed)}
+            </div>
+        `;
+    });
+
+    card.innerHTML = html;
+
+    row.appendChild(avatar);
+    row.appendChild(card);
 
     chatContainer.appendChild(row);
 
@@ -748,33 +828,27 @@ function attachRecentSearchEvents() {
 function resetChat(name) {
     const displayName =
         name ||
-        getSavedUser()?.name ||
+        getSavedUser()?.username ||
         "there";
 
     chatContainer.innerHTML = `
-        <article class="welcome-card">
-
+        <div class="welcome-screen">
             <div class="welcome-icon">✦</div>
 
-            <div>
-                <h1>Hello, ${escapeHTML(displayName)}.</h1>
+            <h1>Welcome, ${escapeHTML(displayName)}</h1>
 
-                <p>
-                    Ask for current weather,
-                    forecasts, rainfall risk,
-                    storm alerts, or travel
-                    conditions.
+            <p>
+                What would you like to know about the weather?
+            </p>
 
-                    <strong>
-                        Start with a city or region.
-                    </strong>
-                </p>
+            <div class="welcome-hints">
+                <span>Current weather</span>
+                <span>Forecasts</span>
+                <span>Rainfall</span>
+                <span>Weather alerts</span>
             </div>
-
-        </article>
+        </div>
     `;
-
-    input.value = "";
 }
 
 
@@ -1044,31 +1118,30 @@ function renderConversations(conversations) {
 
     if (!conversations.length) {
         const emptyMessage = document.createElement("div");
-
         emptyMessage.className = "recent-empty";
         emptyMessage.textContent = "No conversations yet.";
-
         recentList.appendChild(emptyMessage);
         return;
     }
 
     conversations.forEach(conversation => {
-        const button = document.createElement("button");
-
-        button.type = "button";
-        button.className = "recent-location";
+        const item = document.createElement("div");
+        item.className = "conversation-item";
 
         if (conversation.id === currentConversationId) {
-            button.classList.add("active");
+            item.classList.add("active");
         }
 
-        button.dataset.conversationId = conversation.id;
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "conversation-select";
 
         const icon = document.createElement("span");
         icon.className = "location-icon";
         icon.textContent = "◌";
 
         const title = document.createElement("span");
+        title.className = "conversation-title";
         title.textContent = conversation.title;
 
         button.appendChild(icon);
@@ -1078,8 +1151,67 @@ function renderConversations(conversations) {
             loadConversation(conversation.id);
         });
 
-        recentList.appendChild(button);
+        const deleteButton = document.createElement("button");
+        deleteButton.type = "button";
+        deleteButton.className = "conversation-delete";
+        deleteButton.textContent = "×";
+        deleteButton.title = "Delete conversation";
+        deleteButton.setAttribute(
+            "aria-label",
+            `Delete ${conversation.title}`
+        );
+
+        deleteButton.addEventListener("click", event => {
+            event.stopPropagation();
+            deleteConversation(conversation.id);
+        });
+
+        item.appendChild(button);
+        item.appendChild(deleteButton);
+
+        recentList.appendChild(item);
     });
+}
+async function deleteConversation(conversationId) {
+    const token = getAuthToken();
+
+    if (!token) return;
+
+    const confirmed = confirm(
+        "Are you sure you want to delete this conversation?"
+    );
+
+    if (!confirmed) return;
+
+    try {
+        const response = await fetch(
+            `${API_BASE_URL}/conversations/${conversationId}`,
+            {
+                method: "DELETE",
+                headers: {
+                    "Authorization": `Bearer ${token}`
+                }
+            }
+        );
+
+        if (!response.ok) {
+            throw new Error("Could not delete conversation.");
+        }
+
+        if (currentConversationId === conversationId) {
+            currentConversationId = null;
+            resetChat();
+        }
+
+        await loadConversations();
+
+    } catch (error) {
+        console.error("Delete conversation error:", error);
+
+        appendBotMessage(
+            "Unable to delete this conversation."
+        );
+    }
 }
 async function loadConversation(conversationId) {
     const token = getAuthToken();
@@ -1139,6 +1271,12 @@ async function handleQuery() {
         return;
     }
     appendUserMessage(query);
+    const welcomeScreen =
+        chatContainer.querySelector(".welcome-screen");
+    
+    if (welcomeScreen) {
+        welcomeScreen.remove();
+    }
     saveRecentSearch(query);
     input.value = "";
     const thinkingMessage =

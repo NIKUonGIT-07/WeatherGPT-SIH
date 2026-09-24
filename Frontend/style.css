@@ -504,21 +504,26 @@ body {
 /* =========================================================
    MAIN
 ========================================================= */
-
 .main {
-
     position: relative;
-
     flex: 1;
-
     height: 100vh;
-
     min-width: 0;
-
     display: flex;
-
     flex-direction: column;
 
+    background:
+        radial-gradient(
+            circle at 50% 20%,
+            rgba(20, 72, 120, 0.18),
+            transparent 45%
+        ),
+        linear-gradient(
+            135deg,
+            #071225 0%,
+            #09172B 50%,
+            #0B1B32 100%
+        );
 }
 
 
@@ -1942,4 +1947,210 @@ body {
 
 .password-toggle.password-visible {
     color: #5bc0ff;
+}
+/* =========================
+   CONVERSATION SIDEBAR
+========================= */
+
+.conversation-item {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 6px;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.conversation-select {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border: none;
+    background: transparent;
+    color: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.conversation-title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.conversation-delete {
+    width: 34px;
+    height: 34px;
+    margin-right: 4px;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    color: #8b95a7;
+    font-size: 18px;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.2s ease, background 0.2s ease;
+}
+
+.conversation-item:hover .conversation-delete {
+    opacity: 1;
+}
+
+.conversation-delete:hover {
+    background: rgba(255, 80, 80, 0.1);
+    color: #ff5c5c;
+}
+
+.conversation-item:hover {
+    background: rgba(91, 192, 255, 0.08);
+}
+
+.conversation-item.active {
+    background: rgba(91, 192, 255, 0.14);
+}
+
+.conversation-item.active .conversation-select {
+    color: #5bc0ff;
+}
+
+.recent-empty {
+    padding: 12px;
+    color: #8b95a7;
+    font-size: 13px;
+    text-align: center;
+}
+/* =========================
+   WEATHER RESPONSE UI
+========================= */
+
+.weather-response-card {
+    padding: 22px 24px;
+    max-width: 700px;
+}
+
+.weather-response-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--white);
+    margin-bottom: 18px;
+}
+
+.weather-section-title {
+    margin-top: 18px;
+    margin-bottom: 9px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid rgba(91, 143, 194, 0.14);
+
+    color: var(--cyan);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+}
+
+.weather-data-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+
+    padding: 7px 0;
+
+    font-size: 13px;
+}
+
+.weather-data-label {
+    color: var(--muted);
+}
+
+.weather-data-value {
+    color: var(--white);
+    font-weight: 500;
+    text-align: right;
+}
+
+.weather-response-line {
+    padding: 5px 0;
+
+    color: #D8E7F7;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.weather-response-card .weather-section-title:first-of-type {
+    margin-top: 0;
+}
+.welcome-screen {
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 40px 20px;
+}
+
+.welcome-screen .welcome-icon {
+    width: 54px;
+    height: 54px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+    border: 1px solid rgba(91, 192, 255, 0.3);
+    border-radius: 16px;
+    background: rgba(91, 192, 255, 0.08);
+    color: #00d9ff;
+    font-size: 24px;
+}
+
+.welcome-screen h1 {
+    margin: 0 0 10px;
+    color: #ffffff;
+    font-size: 28px;
+    font-weight: 700;
+}
+
+.welcome-screen p {
+    margin: 0;
+    color: #8fa9c7;
+    font-size: 15px;
+}
+
+.welcome-hints {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 22px;
+}
+
+.welcome-hints span {
+    padding: 7px 12px;
+    border: 1px solid rgba(91, 192, 255, 0.16);
+    border-radius: 20px;
+    background: rgba(91, 192, 255, 0.05);
+    color: #7fa5ca;
+    font-size: 12px;
+}
+.welcome-screen {
+    position: relative;
+    overflow: hidden;
+}
+
+.welcome-screen::before {
+    content: "";
+    position: absolute;
+    width: 420px;
+    height: 420px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    background: rgba(0, 180, 255, 0.06);
+    filter: blur(80px);
+    pointer-events: none;
 }

@@ -183,7 +183,10 @@ def detect_time(message: str):
 def detect_intent(message: str):
     message_lower = message.lower()
 
-    # Landslide
+    # ==================================================
+    # Landslide Risk
+    # ==================================================
+
     landslide_keywords = [
         "landslide",
         "landslides",
@@ -193,20 +196,29 @@ def detect_intent(message: str):
         "landslide prone",
         "risk of landslide",
         "risk of landslides",
+
+        # Hindi
         "भूस्खलन",
         "भूस्खलन का खतरा",
         "भूस्खलन का जोखिम",
-        "भूमिस्खलन",
+
+        # Assamese
         "ভূমিস্খলন",
         "ভূমিধস",
-        "ভূমিধসের ঝুঁকি",
         "ভূমিস্খলনৰ আশংকা",
+
+        # Bengali
+        "ভূমিধসের ঝুঁকি",
     ]
 
     if any(keyword in message_lower for keyword in landslide_keywords):
         return "landslide_risk"
 
-    # Weather alerts / warnings
+
+    # ==================================================
+    # Weather Alerts
+    # ==================================================
+
     alert_keywords = [
         "weather alert",
         "weather alerts",
@@ -218,13 +230,18 @@ def detect_intent(message: str):
         "advisories",
         "severe weather",
         "dangerous weather",
-        "weather alert",
+
+        # Hindi
         "मौसम चेतावनी",
         "मौसम की चेतावनी",
         "चेतावनी",
         "मौसम अलर्ट",
+
+        # Assamese
         "সতৰ্কবাণী",
         "বতৰৰ সতৰ্কবাণী",
+
+        # Bengali
         "আবহাওয়া সতর্কতা",
         "আবহাওয়ার সতর্কতা",
     ]
@@ -232,116 +249,188 @@ def detect_intent(message: str):
     if any(keyword in message_lower for keyword in alert_keywords):
         return "alerts"
 
-    # Forecast
-    forecast_keywords = [
-        "forecast",
-        "tomorrow",
-        "next",
-        "week",
-        "5 day",
-        "five day",
-        "upcoming",
-        "पूर्वानुमान",
-        "कल",
-        "আগামীকাল",
-        "পূৰ্বানুমান",
-        "পূর্বাভাস",
-    ]
 
-    if any(keyword in message_lower for keyword in forecast_keywords):
-        return "forecast"
+    # ==================================================
+    # Weather Advice
+    # ==================================================
 
-    # Weather advice
     advice_keywords = [
         "should i",
-        "should we",
+        "should i wear",
+        "should i carry",
+        "should i go",
         "is it safe",
         "what should i",
-        "what should we",
         "carry an umbrella",
         "what should i wear",
         "avoid going outside",
         "safe to go outside",
+
+        # Hindi
         "क्या मुझे",
         "क्या हमें",
         "क्या मैं",
         "बाहर जाना सुरक्षित",
         "क्या पहनना",
-        "छाता",
-        "umbrella",
-        "কি মই",
+
+        # Assamese
+        "ছাতি",
         "মই কি",
         "বাহিৰলৈ যোৱা",
+        "বাহিৰলৈ যোৱা সুৰক্ষিত",
+
+        # Bengali
+        "কি আমি",
+        "ছাতা",
     ]
 
     if any(keyword in message_lower for keyword in advice_keywords):
         return "weather_advice"
 
+
+    # ==================================================
     # Rain
+    # ==================================================
+
     rain_keywords = [
         "rain",
         "raining",
         "rainfall",
+        "rainy",
         "shower",
+        "showers",
         "drizzle",
-        "बरसात",
+        "precipitation",
+
+        # Hindi
         "बारिश",
+        "बारिश होगी",
         "वर्षा",
+        "बरसात",
         "बरसने",
+
+        # Assamese
         "বৰষুণ",
         "বৰষুণীয়া",
+        "বৃষ্টি",
+
+        # Bengali
         "বৃষ্টি",
     ]
 
     if any(keyword in message_lower for keyword in rain_keywords):
         return "rain"
 
+
+    # ==================================================
     # Temperature
+    # ==================================================
+
     temperature_keywords = [
         "temperature",
+        "how hot",
+        "how cold",
         "hot",
         "cold",
-        "गरमी",
+
+        # Hindi
         "गर्मी",
-        "ठंड",
+        "ठंडी",
         "तापमान",
+
+        # Assamese
         "উষ্ণতা",
         "ঠাণ্ডা",
         "গৰম",
         "তাপমাত্ৰা",
+
+        # Bengali
+        "তাপমাত্রা",
     ]
 
     if any(keyword in message_lower for keyword in temperature_keywords):
         return "temperature"
 
+
+    # ==================================================
     # Humidity
+    # ==================================================
+
     humidity_keywords = [
         "humidity",
         "humid",
+
+        # Hindi
         "नमी",
         "आर्द्रता",
+
+        # Assamese
         "আৰ্দ্ৰতা",
+
+        # Bengali
         "আর্দ্রতা",
     ]
 
     if any(keyword in message_lower for keyword in humidity_keywords):
         return "humidity"
 
+
+    # ==================================================
     # Wind
+    # ==================================================
+
     wind_keywords = [
         "wind",
         "wind speed",
         "strong wind",
+        "windy",
+
+        # Hindi
         "हवा",
         "हवा की गति",
         "तेज हवा",
+
+        # Assamese
         "বতাহ",
         "বতাহৰ গতি",
+
+        # Bengali
         "ঝড়ো হাওয়া",
     ]
 
     if any(keyword in message_lower for keyword in wind_keywords):
         return "wind"
+
+
+    # ==================================================
+    # Forecast
+    # ==================================================
+
+    forecast_keywords = [
+        "forecast",
+        "5 day",
+        "five day",
+        "upcoming",
+        "weather forecast",
+
+        # Hindi
+        "पूर्वानुमान",
+
+        # Assamese
+        "পূৰ্বানুমান",
+        "পূৰ্বাভাস",
+
+        # Bengali
+        "পূর্বাভাস",
+    ]
+
+    if any(keyword in message_lower for keyword in forecast_keywords):
+        return "forecast"
+
+
+    # ==================================================
+    # Default
+    # ==================================================
 
     return "current_weather"
 

@@ -123,16 +123,6 @@ def should_use_llm(
 
 
     # --------------------------------------------------
-    # Non-English responses currently use Gemini
-    # so that Hindi, Bengali and Assamese responses
-    # remain natural and properly localized.
-    # --------------------------------------------------
-
-    if language != "english":
-        return True
-
-
-    # --------------------------------------------------
     # Simple English weather requests can use the
     # deterministic response builders directly.
     # --------------------------------------------------
@@ -189,7 +179,31 @@ def build_final_response(
         verified_text,
         language
     )
+def get_previous_city(
+    conversation_id: int | None,
+    db: Session
+) -> str | None:
 
+    if conversation_id is None:
+        return None
+
+    previous_messages = (
+        db.query(Message)
+        .filter(
+            Message.conversation_id == conversation_id,
+            Message.role == "user"
+        )
+        .order_by(Message.created_at.desc())
+        .all()
+    )
+
+    for message in previous_messages:
+        city = extract_city(message.content)
+
+        if city:
+            return city
+
+    return None
 
 # ==================================================
 # RAIN RESPONSE
@@ -543,24 +557,35 @@ def chat(
 
 
     # ==================================================
-    # CITY FALLBACK
+    # CITY FALLBACK + CONVERSATION CONTEXT
     # ==================================================
-
+    
+    print("CURRENT MESSAGE:", user_message)
+    print("CONVERSATION ID:", request.conversation_id)
+    print("CITY FROM NLU:", city)
+    
     if not city:
-
-        city = extract_city(
-            user_message
+        city = extract_city(user_message)
+    
+    # If the current message does not mention a city,
+    # use the city from the previous message.
+    if not city and request.conversation_id is not None:
+        previous_city = get_previous_city(
+            request.conversation_id,
+            db
         )
-
-
+    
+        if previous_city:
+            city = previous_city
+            print("USING CONVERSATION CITY:", city)
+    
     if not city:
-
         return {
             "reply": (
-                "Sorry, I couldn't identify the city "
-                "in your message. Try asking: "
-                "What's the weather in Guwahati?"
-            )
+                    "Location not specified. Please provide a city "
+                    "or region to continue.\n"
+                    "Example: \"What's the weather in Guwahati?\""
+                )
         }
 
 
@@ -726,19 +751,13 @@ def chat(
             tomorrow,
             "Tomorrow"
         )
-
-
+        
         final_reply = build_final_response(
             user_message,
             forecast_text,
             intent,
             language
         )
-
-
-        return {
-            "reply": final_reply
-        }
 
 
     # ==================================================
