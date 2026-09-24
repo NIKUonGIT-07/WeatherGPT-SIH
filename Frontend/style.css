@@ -447,9 +447,7 @@ body {
 ========================================================= */
 
 .sidebar-bottom {
-
-    margin-top: auto;
-
+    margin-top: 20px;
 }
 
 
@@ -593,7 +591,23 @@ body {
     overflow-y: auto;
 
 }
+/* Main Chat Scrollbar */
+.chat-container::-webkit-scrollbar {
+    width: 6px;
+}
 
+.chat-container::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.chat-container::-webkit-scrollbar-thumb {
+    background: rgba(91, 192, 255, 0.35);
+    border-radius: 10px;
+}
+
+.chat-container::-webkit-scrollbar-thumb:hover {
+    background: rgba(91, 192, 255, 0.55);
+}
 
 /* Scrollbar */
 
@@ -2153,4 +2167,80 @@ body {
     background: rgba(0, 180, 255, 0.06);
     filter: blur(80px);
     pointer-events: none;
+}
+.sidebar-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.section-toggle {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border: none;
+    border-radius: 7px;
+    background: transparent;
+    color: #8fa9c7;
+
+    font-size: 14px;
+    cursor: pointer;
+
+    transition:
+        background 0.2s ease,
+        color 0.2s ease;
+}
+
+.section-toggle:hover {
+    background: rgba(91, 192, 255, 0.08);
+    color: #5bc0ff;
+}
+
+#conversation-list-wrapper {
+    max-height: 300px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    opacity: 1;
+
+    transition:
+        max-height 0.25s ease,
+        opacity 0.2s ease;
+}
+
+#conversation-list-wrapper.collapsed {
+    max-height: 0;
+    opacity: 0;
+}
+#conversation-list-wrapper::-webkit-scrollbar {
+    width: 4px;
+}
+
+#conversation-list-wrapper::-webkit-scrollbar-thumb {
+    background: rgba(91, 192, 255, 0.25);
+    border-radius: 10px;
+}
+.sidebar {
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+/* Sidebar Scrollbar */
+.sidebar::-webkit-scrollbar {
+    width: 5px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+    background: rgba(91, 192, 255, 0.30);
+    border-radius: 10px;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+    background: rgba(91, 192, 255, 0.55);
 }

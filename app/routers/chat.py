@@ -636,9 +636,8 @@ def chat(
 
 
         return {
-            "reply": final_reply
-        }
-
+                "reply": final_reply
+            }
 
     # ==================================================
     # LANDSLIDE RISK
@@ -937,7 +936,18 @@ def chat(
 
 
         return {
-            "reply": final_reply
+            "reply": final_reply,
+            "weather": {
+                "city": weather.get("city"),
+                "country": weather.get("country"),
+                "temperature": weather.get("temperature"),
+                "humidity": weather.get("humidity"),
+                "wind_speed": weather.get("wind_speed"),
+                "condition": weather.get("condition"),
+                "uv_index": weather.get("uv_index"),
+                "sunrise": weather.get("sunrise"),
+                "sunset": weather.get("sunset")
+            }
         }
 
 

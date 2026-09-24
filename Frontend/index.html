@@ -254,88 +254,176 @@
 
     <div class="app">
         <aside class="sidebar" aria-label="WeatherGPT sidebar">
+    
             <div class="brand" aria-label="WeatherGPT">
                 <div class="brand-dot" aria-hidden="true"></div>
                 <span>WeatherGPT</span>
             </div>
-
+    
             <div class="user-panel">
                 <div>
                     <span class="user-label">SIGNED IN AS</span>
                     <strong id="sidebar-user-name">Guest</strong>
                 </div>
-                <button class="logout-button" id="logout-button" type="button">Logout</button>
+    
+                <button
+                    class="logout-button"
+                    id="logout-button"
+                    type="button"
+                >
+                    Logout
+                </button>
             </div>
-
+    
             <button class="new-forecast" id="new-forecast" type="button">
                 <span class="plus" aria-hidden="true">+</span>
                 <span>New Forecast</span>
             </button>
-
-            <section class="recent-section" aria-labelledby="recent-searches-title">
-                <div class="section-title" id="recent-searches-title">RECENT SEARCHES</div>
-
-                <div class="recent-list">
-                    <button class="recent-location" type="button" data-query="Weather in Guwahati">
-                        <span class="location-icon" aria-hidden="true">⌖</span>
-                        <span>Guwahati, India</span>
+    
+            <!-- RECENT CONVERSATIONS -->
+            <section
+                class="recent-section"
+                aria-labelledby="recent-conversations-title"
+            >
+    
+                <div class="sidebar-section-header">
+    
+                    <span
+                        class="section-title"
+                        id="recent-conversations-title"
+                    >
+                        RECENT CONVERSATIONS
+                    </span>
+    
+                    <button
+                        class="section-toggle"
+                        id="conversations-toggle"
+                        type="button"
+                        aria-label="Collapse recent conversations"
+                        aria-expanded="true"
+                    >
+                        ↓
                     </button>
-
-                    <button class="recent-location" type="button" data-query="Weather in Mumbai">
-                        <span class="location-icon" aria-hidden="true">⌖</span>
-                        <span>Mumbai, India</span>
-                    </button>
-
-                    <button class="recent-location" type="button" data-query="Weather in Delhi">
-                        <span class="location-icon" aria-hidden="true">⌖</span>
-                        <span>Delhi, India</span>
-                    </button>
+    
                 </div>
+    
+                <div id="conversation-list-wrapper">
+                    <div id="conversation-list"></div>
+                </div>
+    
             </section>
-
-            <section class="insights-section" aria-labelledby="daily-insights-title">
-                <div class="section-title" id="daily-insights-title">DAILY INSIGHTS</div>
-
+    
+            <!-- DAILY INSIGHTS -->
+            <section
+                class="insights-section"
+                aria-labelledby="daily-insights-title"
+            >
+    
+                <div
+                    class="section-title"
+                    id="daily-insights-title"
+                >
+                    DAILY INSIGHTS
+                </div>
+    
                 <div class="insights-grid">
+    
                     <article class="insight-card">
+    
                         <div class="insight-header">
-                            <span class="insight-icon" aria-hidden="true">AQI</span>
-                            <span class="insight-label">Air Quality</span>
+                            <span
+                                class="insight-icon"
+                                aria-hidden="true"
+                            >
+                                AQI
+                            </span>
+    
+                            <span class="insight-label">
+                                Air Quality
+                            </span>
                         </div>
+    
                         <div class="insight-value">
                             <span id="aqi-value">--</span>
-                            <span class="insight-status status-good" id="aqi-status">Ready</span>
+    
+                            <span
+                                class="insight-status status-good"
+                                id="aqi-status"
+                            >
+                                Ready
+                            </span>
                         </div>
-                        <div class="insight-bar-bg" aria-hidden="true">
+    
+                        <div
+                            class="insight-bar-bg"
+                            aria-hidden="true"
+                        >
                             <div class="insight-bar-fill aqi-fill"></div>
                         </div>
+    
                     </article>
-
+    
+    
                     <article class="insight-card">
+    
                         <div class="insight-header">
-                            <span class="insight-icon" aria-hidden="true">UV</span>
-                            <span class="insight-label">UV Index</span>
+                            <span
+                                class="insight-icon"
+                                aria-hidden="true"
+                            >
+                                UV
+                            </span>
+    
+                            <span class="insight-label">
+                                UV Index
+                            </span>
                         </div>
+    
                         <div class="insight-value">
                             <span id="uv-value">--</span>
-                            <span class="insight-status status-mod" id="uv-status">Ready</span>
+    
+                            <span
+                                class="insight-status status-mod"
+                                id="uv-status"
+                            >
+                                Ready
+                            </span>
                         </div>
-                        <div class="insight-bar-bg" aria-hidden="true">
+    
+                        <div
+                            class="insight-bar-bg"
+                            aria-hidden="true"
+                        >
                             <div class="insight-bar-fill uv-fill"></div>
                         </div>
+    
                     </article>
-
+    
+    
                     <article class="insight-card full-width">
+    
                         <div class="insight-header">
-                            <span class="insight-icon" aria-hidden="true">SUN</span>
-                            <span class="insight-label">Sunrise & Sunset</span>
+                            <span
+                                class="insight-icon"
+                                aria-hidden="true"
+                            >
+                                SUN
+                            </span>
+    
+                            <span class="insight-label">
+                                Sunrise & Sunset
+                            </span>
                         </div>
+    
                         <div class="sun-times">
                             <div id="sunrise-time">↑ --</div>
                             <div id="sunset-time">↓ --</div>
                         </div>
+    
                     </article>
+    
                 </div>
+    
             </section>
 
             <div class="sidebar-bottom">

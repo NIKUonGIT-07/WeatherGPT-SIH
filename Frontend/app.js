@@ -60,7 +60,7 @@ const sendButton = document.querySelector(".send-button");
 const voiceButton = document.querySelector(".voice-button");
 
 const chatContainer = document.querySelector(".chat-container");
-const recentList = document.querySelector(".recent-list");
+const conversationList = document.getElementById("conversation-list");
 
 const newForecastButton = document.querySelector(".new-forecast");
 
@@ -649,48 +649,66 @@ function estimateDailyInsights(reply) {
 }
 
 
-function updateDailyInsights(reply) {
-    const insights = estimateDailyInsights(reply);
+function updateDailyInsights(weather) {
+    if (!weather) return;
 
-    if (aqiValue) {
-        aqiValue.textContent = insights.aqi;
-    }
-
-    if (aqiStatus) {
-        aqiStatus.textContent = getInsightStatus(
-            insights.aqi,
-            "aqi"
-        );
-
-        aqiStatus.className =
-            insights.aqi <= 50
-                ? "insight-status status-good"
-                : "insight-status status-mod";
-    }
+    // UV Index
+    const uvValue = document.getElementById("uv-value");
+    const uvStatus = document.getElementById("uv-status");
 
     if (uvValue) {
-        uvValue.textContent = insights.uv;
+        uvValue.textContent =
+            weather.uv_index !== null && weather.uv_index !== undefined
+                ? weather.uv_index
+                : "--";
     }
 
     if (uvStatus) {
-        uvStatus.textContent = getInsightStatus(
-            insights.uv,
-            "uv"
-        );
-
-        uvStatus.className =
-            insights.uv <= 2
-                ? "insight-status status-good"
-                : "insight-status status-mod";
+        const uv = Number(weather.uv_index);
+    
+        if (uv <= 2) {
+            uvStatus.textContent = "Low";
+        } else if (uv <= 5) {
+            uvStatus.textContent = "Moderate";
+        } else if (uv <= 7) {
+            uvStatus.textContent = "High";
+        } else if (uv <= 10) {
+            uvStatus.textContent = "Very High";
+        } else {
+            uvStatus.textContent = "Extreme";
+        }
+    
+        const uvFill = document.querySelector(".uv-fill");
+    
+        if (uvFill) {
+            const percentage = Math.min((uv / 10) * 100, 100);
+            uvFill.style.width = `${percentage}%`;
+        }
     }
 
-    if (sunriseTime) {
-        sunriseTime.textContent = insights.sunrise;
+    // Sunrise
+    const sunriseTime = document.getElementById("sunrise-time");
+
+    if (sunriseTime && weather.sunrise) {
+        sunriseTime.textContent =
+            `↑ ${formatTime(weather.sunrise)}`;
     }
 
-    if (sunsetTime) {
-        sunsetTime.textContent = insights.sunset;
+    // Sunset
+    const sunsetTime = document.getElementById("sunset-time");
+
+    if (sunsetTime && weather.sunset) {
+        sunsetTime.textContent =
+            `↓ ${formatTime(weather.sunset)}`;
     }
+}
+function formatTime(dateTime) {
+    const date = new Date(dateTime);
+
+    return date.toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit"
+    });
 }
 
 
@@ -1112,15 +1130,15 @@ async function loadConversations() {
     }
 }
 function renderConversations(conversations) {
-    if (!recentList) return;
+    if (!conversationList) return;
 
-    recentList.innerHTML = "";
+    conversationList.innerHTML = "";
 
     if (!conversations.length) {
         const emptyMessage = document.createElement("div");
         emptyMessage.className = "recent-empty";
         emptyMessage.textContent = "No conversations yet.";
-        recentList.appendChild(emptyMessage);
+        conversationList.appendChild(emptyMessage);
         return;
     }
 
@@ -1169,7 +1187,7 @@ function renderConversations(conversations) {
         item.appendChild(button);
         item.appendChild(deleteButton);
 
-        recentList.appendChild(item);
+        conversationList.appendChild(item);
     });
 }
 async function deleteConversation(conversationId) {
@@ -1319,7 +1337,7 @@ async function handleQuery() {
         );
         await loadConversations();
         updateDailyInsights(
-            reply
+            data.weather
         );
         /*
            Read the response aloud
@@ -1337,6 +1355,33 @@ async function handleQuery() {
         );
         console.error(error);
     }
+}
+const conversationsToggle =
+    document.getElementById("conversations-toggle");
+
+const conversationsWrapper =
+    document.getElementById("conversation-list-wrapper");
+
+if (conversationsToggle && conversationsWrapper) {
+    conversationsToggle.addEventListener("click", () => {
+        const isCollapsed =
+            conversationsWrapper.classList.toggle("collapsed");
+
+        conversationsToggle.textContent =
+            isCollapsed ? "↑" : "↓";
+
+        conversationsToggle.setAttribute(
+            "aria-expanded",
+            String(!isCollapsed)
+        );
+
+        conversationsToggle.setAttribute(
+            "aria-label",
+            isCollapsed
+                ? "Expand recent conversations"
+                : "Collapse recent conversations"
+        );
+    });
 }
 /* =========================
    EVENT LISTENERS

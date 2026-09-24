@@ -62,13 +62,19 @@ def get_current_weather(city: str):
         params={
             "latitude": latitude,
             "longitude": longitude,
-            "current": "temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code"
+            "current": "temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code,uv_index",
+            "daily": "sunrise,sunset",
+            "timezone": "auto"
         }
     )
 
     weather_data = weather_response.json()
 
     current = weather_data["current"]
+    daily = weather_data["daily"]
+    sunrise = daily["sunrise"][0]
+    sunset = daily["sunset"][0]
+    uv_index = current.get("uv_index")
 
     weather_code = current["weather_code"]
 
@@ -76,22 +82,26 @@ def get_current_weather(city: str):
     # Step 3: Return Structured Data
     # -----------------------------
     return {
-
+    
         "city": location["name"],
         "country": location.get("country", ""),
-
+    
         "latitude": latitude,
         "longitude": longitude,
-
+    
         "temperature": current["temperature_2m"],
         "humidity": current["relative_humidity_2m"],
         "wind_speed": current["wind_speed_10m"],
-
+    
         "weather_code": weather_code,
         "condition": WEATHER_CODES.get(
             weather_code,
             "Unknown"
         ),
-
+    
+        "uv_index": current.get("uv_index"),
+        "sunrise": daily["sunrise"][0],
+        "sunset": daily["sunset"][0],
+    
         "time": current["time"]
     }
