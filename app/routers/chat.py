@@ -435,7 +435,22 @@ def chat(
 ):
 
     user_message = request.message.strip()
-
+    # Handle greetings before NLU processing
+    message_lower = user_message.lower().strip(" !.,?")
+    
+    greetings = {
+        "hello", "hi", "hey",
+        "good morning", "good afternoon", "good evening"
+    }
+    
+    if message_lower in greetings:
+        return {
+            "reply": (
+                "Hello! I'm Raikyn AI. "
+                "How can I help you with the weather today?"
+            ),
+            "type": "text"
+        }
 
     if not user_message:
 
@@ -538,7 +553,15 @@ def chat(
     intent = nlu_result.get(
         "intent"
     )
-
+    # Handle greetings before city detection
+    if intent == "greeting":
+        return {
+            "reply": (
+                "Hello! I'm Raikyn AI. "
+                "How can I help you with the weather today?"
+            ),
+            "type": "text"
+        }
     time = nlu_result.get(
         "time",
         "unspecified"
@@ -800,34 +823,25 @@ def chat(
     # ==================================================
 
     if time == "this_week":
-
-        forecast = get_forecast(
-            city
-        )
-
-
+    
+        forecast = get_forecast(city)
+    
         if "error" in forecast:
-
-            return {
-                "reply": forecast["error"]
-            }
-
-
-        forecast_text = build_forecast_response(
-            forecast
-        )
-
-
+            return {"reply": forecast["error"]}
+    
+        forecast_result = build_forecast_response(forecast)
+    
         final_reply = build_final_response(
             user_message,
-            forecast_text,
+            forecast_result["reply"],
             intent,
             language
         )
-
-
+    
         return {
-            "reply": final_reply
+            "reply": final_reply,
+            "type": forecast_result["type"],
+            "data": forecast_result["data"]
         }
 
 
@@ -851,35 +865,26 @@ def chat(
     # ==================================================
 
     if intent == "forecast":
-
-        forecast = get_forecast(
-            city
-        )
-
-
-        if "error" in forecast:
-
-            return {
-                "reply": forecast["error"]
-            }
-
-
-        forecast_text = build_forecast_response(
-            forecast
-        )
-
-
-        final_reply = build_final_response(
-            user_message,
-            forecast_text,
-            intent,
-            language
-        )
-
-
-        return {
-            "reply": final_reply
-        }
+   
+       forecast = get_forecast(city)
+   
+       if "error" in forecast:
+           return {"reply": forecast["error"]}
+   
+       forecast_result = build_forecast_response(forecast)
+   
+       final_reply = build_final_response(
+           user_message,
+           forecast_result["reply"],
+           intent,
+           language
+       )
+   
+       return {
+           "reply": final_reply,
+           "type": forecast_result["type"],
+           "data": forecast_result["data"]
+       }
 
 
     # ==================================================

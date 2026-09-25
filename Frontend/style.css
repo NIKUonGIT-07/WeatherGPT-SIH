@@ -2244,3 +2244,91 @@ body {
 .sidebar::-webkit-scrollbar-thumb:hover {
     background: rgba(91, 192, 255, 0.55);
 }
+
+/* ===== 5-Day Forecast Cards ===== */
+
+.forecast-response-card {
+    max-width: 900px;
+    width: 100%;
+}
+
+.forecast-location {
+    margin-top: 8px;
+    margin-bottom: 20px;
+    font-size: 16px;
+    color: #c5d8f1;
+}
+
+.forecast-cards-container {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    padding: 8px 2px 14px;
+    margin-top: 16px;
+    scrollbar-width: thin;
+    scrollbar-color: #42658c transparent;
+}
+
+.forecast-day-card {
+    flex: 0 0 145px;
+    min-width: 0;
+    padding: 16px;
+    border-radius: 14px;
+    background: rgba(35, 68, 108, 0.45);
+    border: 1px solid rgba(100, 155, 210, 0.25);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    color: #eaf3ff;
+    transition: transform 0.2s ease,
+                background 0.2s ease;
+}
+
+.forecast-day-card:hover {
+    transform: translateY(-3px);
+    background: rgba(45, 85, 130, 0.65);
+}
+
+.forecast-day-date {
+    font-size: 14px;
+    font-weight: 600;
+    color: #b9d0ee;
+}
+
+.forecast-day-condition {
+    font-size: 14px;
+    min-height: 36px;
+    line-height: 1.4;
+}
+
+.forecast-day-temp {
+    font-size: 17px;
+    font-weight: 700;
+    color: #ffffff;
+    line-height: 1.5;
+}
+
+.forecast-day-rain,
+.forecast-day-rainfall {
+    font-size: 12px;
+    color: #b9d0ee;
+    line-height: 1.5;
+}
+
+/* Mobile layout */
+@media (max-width: 600px) {
+    .forecast-response-card {
+        padding: 16px;
+    }
+
+    .forecast-day-card {
+        flex-basis: 135px;
+        padding: 12px;
+    }
+}
+
+.forecast-day-icon {
+    font-size: 36px;
+    line-height: 1.2;
+    margin: 2px 0;
+}

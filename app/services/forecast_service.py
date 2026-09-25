@@ -36,7 +36,14 @@ def get_forecast(city: str):
             params={
                 "latitude": latitude,
                 "longitude": longitude,
-                "daily": "weather_code,temperature_2m_max,temperature_2m_min,wind_speed_10m_max",
+                "daily": (
+                    "weather_code,"
+                    "temperature_2m_max,"
+                    "temperature_2m_min,"
+                    "wind_speed_10m_max,"
+                    "precipitation_sum,"
+                    "precipitation_probability_max"
+                ),
                 "forecast_days": 5
             },
             timeout=10
@@ -52,7 +59,9 @@ def get_forecast(city: str):
                 "condition": WEATHER_CODES.get(weather_code, "Unknown"),
                 "max_temp": weather_data["temperature_2m_max"][i],
                 "min_temp": weather_data["temperature_2m_min"][i],
-                "max_wind_speed": weather_data.get("wind_speed_10m_max", [None] * len(weather_data["time"]))[i]
+                "max_wind_speed": weather_data.get("wind_speed_10m_max", [None] * len(weather_data["time"]))[i],
+                "rainfall": weather_data["precipitation_sum"][i],
+                "rain_probability": weather_data["precipitation_probability_max"][i]
             })
 
         return {

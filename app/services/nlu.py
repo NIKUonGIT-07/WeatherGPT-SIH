@@ -431,9 +431,17 @@ def detect_intent(message: str):
     # ==================================================
     # Default
     # ==================================================
-
+    # Greetings
+    greetings = {
+        "hello", "hi", "hey",
+        "good morning", "good afternoon", "good evening"
+    }
+    
+    if message_lower.strip(" !.,?") in greetings:
+        return "greeting"
+    
+    # Default
     return "current_weather"
-
 
 def fallback_understand_weather_query(message: str):
     return {

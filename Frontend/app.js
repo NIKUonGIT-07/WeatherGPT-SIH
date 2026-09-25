@@ -412,8 +412,62 @@ function appendUserMessage(message) {
     scrollToBottom();
 }
 
+function getWeatherIcon(condition) {
+    const text = (condition || "").toLowerCase();
 
-function appendBotMessage(message) {
+    if (text.includes("thunder")) return "⛈️";
+    if (text.includes("drizzle")) return "🌦️";
+    if (text.includes("rain")) return "🌧️";
+    if (text.includes("snow")) return "❄️";
+    if (text.includes("fog") || text.includes("mist")) return "🌫️";
+    if (text.includes("cloud")) return "☁️";
+    if (text.includes("clear") || text.includes("sun")) return "☀️";
+
+    return "🌤️";
+}
+
+function renderForecastCards(forecast) {
+    const container = document.createElement("div");
+    container.className = "forecast-cards-container";
+
+    forecast.forEach(day => {
+        const card = document.createElement("div");
+        card.className = "forecast-day-card";
+
+        const date = document.createElement("div");
+        date.className = "forecast-day-date";
+        date.textContent = day.date;
+
+        const condition = document.createElement("div");
+        const icon = document.createElement("div");
+        icon.className = "forecast-day-icon";
+        icon.textContent = getWeatherIcon(day.condition);
+        condition.className = "forecast-day-condition";
+        condition.textContent = day.condition;
+
+        const temperature = document.createElement("div");
+        temperature.className = "forecast-day-temp";
+        temperature.textContent =
+            `${day.max_temp}°C / ${day.min_temp}°C`;
+
+        const rain = document.createElement("div");
+        rain.className = "forecast-day-rain";
+        rain.textContent =
+            `Rain: ${day.rain_probability ?? "N/A"}%`;
+
+        const rainfall = document.createElement("div");
+        rainfall.className = "forecast-day-rainfall";
+        rainfall.textContent =
+            `Rainfall: ${day.rainfall ?? "N/A"} mm`;
+
+        card.append(date, icon, condition, temperature, rain, rainfall);
+        container.appendChild(card);
+    });
+
+    return container;
+}
+
+function appendBotMessage(message, type = "text", data = null) {
     const row = document.createElement("div");
     row.className = "message-row ai-row";
 
@@ -423,6 +477,26 @@ function appendBotMessage(message) {
 
     const card = document.createElement("div");
     card.className = "forecast-card weather-response-card";
+    if (type === "forecast" && data?.forecast) {
+        card.classList.add("forecast-response-card");
+    
+        const title = document.createElement("div");
+        title.className = "weather-response-title";
+        title.textContent = "5-Day Weather Forecast";
+    
+        const location = document.createElement("div");
+        location.className = "forecast-location";
+        location.textContent = `${data.city}, ${data.country}`;
+    
+        card.append(title, location);
+        card.appendChild(renderForecastCards(data.forecast));
+    
+        row.append(avatar, card);
+        chatContainer.appendChild(row);
+    
+        scrollToBottom();
+        return;
+    }
 
     const lines = message.split("\n");
 
@@ -760,59 +834,8 @@ function saveRecentSearch(query) {
 
 
 function renderRecentSearches() {
-    if (!recentList) {
-        return;
-    }
-
-    const searches = getRecentSearches();
-
-    if (searches.length === 0) {
-        recentList.innerHTML = `
-            <button
-                class="recent-location"
-                type="button"
-                data-query="Weather in Guwahati"
-            >
-                <span class="location-icon">⌖</span>
-                <span>Guwahati, India</span>
-            </button>
-
-            <button
-                class="recent-location"
-                type="button"
-                data-query="Weather in Mumbai"
-            >
-                <span class="location-icon">⌖</span>
-                <span>Mumbai, India</span>
-            </button>
-
-            <button
-                class="recent-location"
-                type="button"
-                data-query="Weather in Delhi"
-            >
-                <span class="location-icon">⌖</span>
-                <span>Delhi, India</span>
-            </button>
-        `;
-    } else {
-        recentList.innerHTML = searches
-            .map(
-                search => `
-                    <button
-                        class="recent-location"
-                        type="button"
-                        data-query="${escapeHTML(search)}"
-                    >
-                        <span class="location-icon">⌖</span>
-                        <span>${escapeHTML(search)}</span>
-                    </button>
-                `
-            )
-            .join("");
-    }
-
-    attachRecentSearchEvents();
+    // Recent searches are no longer displayed in the sidebar.
+    return;
 }
 
 
@@ -1322,6 +1345,8 @@ async function handleQuery() {
         }
         
         const data = await response.json();
+        console.log("Response type:", data.type);
+        console.log("Response data:", data.data);
         
         if (data.conversation_id) {
             currentConversationId = data.conversation_id;
@@ -1333,12 +1358,14 @@ async function handleQuery() {
             thinkingMessage
         );
         appendBotMessage(
-            reply
+            reply,
+            data.type || "text",
+            data.data || null
         );
         await loadConversations();
-        updateDailyInsights(
-            data.weather
-        );
+        if (data.weather) {
+            updateDailyInsights(data.weather);
+        }
         /*
            Read the response aloud
            when voice support is available.
